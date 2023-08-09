@@ -9,6 +9,8 @@ import (
 	"net/http"
 	"os"
 	"salon/models"
+	"strconv"
+	"strings"
 	"time"
 
 	"github.com/joho/godotenv"
@@ -104,6 +106,13 @@ func insertReservation(customerID int64, reservation models.ReservationRequest) 
 	db := createConnection()
 	defer db.Close()
 
+	///Check time for reservation////
+	isFree, err := checkOverlap(db, reservation.UslugaID, reservation.Termin)
+	if isFree == false {
+		log.Fatalf("Vec postoji rezervacija u ovom terminu, probajte neki drugi termin!")
+	}
+	//////
+
 	////Check number of services
 	paranBrojUsluga, err := checkNumberOfService(db, customerID, reservation.UslugaID)
 	if paranBrojUsluga == false {
@@ -151,11 +160,11 @@ func insertReservation(customerID int64, reservation models.ReservationRequest) 
 	var id int64
 
 	// Simulacija trajanja rezervacije u minutima
-	durationInMinutes := "2023-08-09 08:30:00"
+	//durationInMinutes := "2023-08-09 08:30:00"
 
 	err = db.QueryRow(
 		sqlStatement,
-		durationInMinutes, promokod, token, reservation.Cena, customerID, reservation.UslugaID,
+		reservation.Termin, promokod, token, reservation.Cena, customerID, reservation.UslugaID,
 	).Scan(&id)
 
 	if err != nil {
@@ -256,4 +265,74 @@ func checkPromoCodeWithDB(db *sql.DB, kupacID int64, promoKod string) (bool, err
 	}
 
 	return true, nil // Promo kod je validan
+}
+
+func parseDurationString(durationStr string) (time.Duration, error) {
+	parts := strings.Split(durationStr, ":")
+	if len(parts) != 3 {
+		return 0, fmt.Errorf("invalid duration format: %s", durationStr)
+	}
+
+	hours, err := strconv.Atoi(parts[0])
+	if err != nil {
+		return 0, err
+	}
+	minutes, err := strconv.Atoi(parts[1])
+	if err != nil {
+		return 0, err
+	}
+	seconds, err := strconv.Atoi(parts[2])
+	if err != nil {
+		return 0, err
+	}
+
+	duration := time.Duration(hours)*time.Hour + time.Duration(minutes)*time.Minute + time.Duration(seconds)*time.Second
+	return duration, nil
+}
+
+func checkOverlap(db *sql.DB, uslugaID int, termin string) (bool, error) {
+	// Izvuci trajanje usluge iz baze
+	var trajanjeStr string
+	query := "SELECT trajanje FROM usluga WHERE id = $1"
+	err := db.QueryRow(query, uslugaID).Scan(&trajanjeStr)
+	fmt.Println(trajanjeStr)
+	if err != nil {
+		return false, err
+	}
+
+	splitTrajanje := strings.Split(trajanjeStr, ":")
+	sati, _ := strconv.Atoi(splitTrajanje[0])
+	minuti, _ := strconv.Atoi(splitTrajanje[1])
+	sekunde, _ := strconv.Atoi(splitTrajanje[2])
+
+	trajanje := time.Duration(sati)*time.Hour + time.Duration(minuti)*time.Minute + time.Duration(sekunde)*time.Second
+	fmt.Println(trajanje)
+
+	// Parsiraj termin iz stringa u time.Time
+	terminStr, err := time.Parse("2006-01-02 15:04:05", termin)
+	fmt.Println(terminStr)
+	if err != nil {
+		return false, err
+	}
+
+	// Izračunaj vreme završetka rezervacije
+	vremeZavrsetka := terminStr.Add(trajanje)
+	fmt.Println(vremeZavrsetka)
+
+	query = `
+	SELECT COUNT(*)
+	FROM rezervacija
+	WHERE usluga_id = $1
+	AND vreme BETWEEN $2 AND $3
+    `
+	var brojPreklapanja int
+	err = db.QueryRow(query, uslugaID, terminStr, vremeZavrsetka).Scan(&brojPreklapanja)
+	if err != nil {
+		fmt.Println("greska prilikom izvršavanja upita:", err)
+		return false, err
+	}
+
+	fmt.Println(brojPreklapanja)
+	// Ako ima preklapanja, rezervacija se ne može napraviti
+	return brojPreklapanja == 0, nil
 }
