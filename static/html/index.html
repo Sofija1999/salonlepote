@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Salon Trač - Osnovne informacije</title>
+
+    <!-- Dodajemo link ka CSS fajlu -->
+    <link rel="stylesheet" type="text/css" href="../css/styles.css">
+
+    <!-- Dodajemo ovde funkciju prelazakNaRezervaciju() -->
+    <script>
+        function prelazakNaRezervaciju() {
+            window.location.href = "rezervacija.html"; // Promenite "rezervacija.html" sa putanjom do vaše stranice za rezervaciju
+        }
+    </script>
+</head>
+<body>
+    <header>
+        <h1>Salon Trač</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="#osnovne-info">Osnovne informacije</a></li>
+            <li><a href="#rezervacija">Rezervacija termina</a></li>
+        </ul>
+    </nav>
+    <section id="osnovne-info">
+        <h2>Osnovne informacije</h2>
+        <p>Lokacija salona: Adresa salona, Grad</p>
+        <p>Radno vreme: Ponedeljak - Petak: 9:00 - 18:00, Subota: 10:00 - 15:00</p>
+        <h3>Dostupne usluge:</h3>
+        <ul>
+            <li>Masaža</li>
+            <li>Manikir</li>
+            <li>Pedikir</li>
+            <li>Tretmani lica</li>
+            <li>Depilacija</li>
+            <!-- Dodajte ostale dostupne usluge -->
+        </ul>
+        <p>Dodatne informacije: Ovde možete dodati bilo kakve dodatne informacije koje su važne za korisnike salona.</p>
+
+        <!-- Dodajemo sliku za dodatnu atraktivnost -->
+        <img src="../images/salon.jpg" alt="Salon Trač" width="300">
+    </section>
+    <section id="rezervacija">
+        <h2>Rezervacija termina</h2>
+        <p>Ukoliko želite da rezervišete termin, kliknite na dugme ispod:</p>
+        <a href="#" onclick="prelazakNaRezervaciju()">Rezerviši termin</a>
+    </section>
+</body>
+</html>

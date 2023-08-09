@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" type="text/css" href="../css/styles_rezervacija.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rezervacija termina - Salon Trač</title>
+
+    <!-- Dodajemo link ka CSS fajlu -->
+    <link rel="stylesheet" type="text/css" href="../css/styles_rezervacija.css">
+</head>
+<body>
+    <header>
+        <h1>Salon Trač</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="index.html">Početna</a></li>
+            <li><a href="#rezervacija">Rezervacija termina</a></li>
+        </ul>
+    </nav>
+    <section id="rezervacija">
+        <h2>Rezervacija termina</h2>
+        <p>Izaberite željene usluge i popunite podatke za rezervaciju:</p>
+        <!-- Forma za rezervaciju -->
+        <form action="procesiraj_rezervaciju.php" method="POST">
+            <!-- Deo o kupcu -->
+            <h3>Podaci o kupcu:</h3>
+            <label for="ime">Ime*:</label>
+            <input type="text" id="ime" name="ime" required>
+
+            <label for="prezime">Prezime*:</label>
+            <input type="text" id="prezime" name="prezime" required>
+
+            <label for="kompanija">Kompanija:</label>
+            <input type="text" id="kompanija" name="kompanija">
+
+            <label for="adresa1">Adresa 1*:</label>
+            <input type="text" id="adresa1" name="adresa1" required>
+
+            <label for="adresa2">Adresa 2:</label>
+            <input type="text" id="adresa2" name="adresa2">
+
+            <label for="postanski_broj">Poštanski broj*:</label>
+            <input type="text" id="postanski_broj" name="postanski_broj" required>
+
+            <label for="mesto">Mesto*:</label>
+            <input type="text" id="mesto" name="mesto" required>
+
+            <label for="drzava">Država*:</label>
+            <input type="text" id="drzava" name="drzava" required>
+
+            <label for="email">Email*:</label>
+            <input type="email" id="email" name="email" required>
+
+            <label for="email_potvrda">Potvrda email adrese*:</label>
+            <input type="email" id="email_potvrda" name="email_potvrda" required>
+
+            <!-- Deo o rezervaciji -->
+            <h3>Podaci o rezervaciji:</h3>
+            <label for="usluge">Izaberite uslugu:</label>
+            <select id="usluge" name="usluge" required>
+                <option value="sisanje_kratka_kosa">Sisanje kratka kosa</option>
+                <option value="sisanje_srednja_kosa">Sisanje srednja kosa</option>
+                <option value="sisanje_duga_kosa">Sisanje duga kosa</option>
+                <option value="manikir">Manikir</option>
+                <option value="pedikir">Pedikir</option>
+                <option value="masaza_sportska">Masaza sportska</option>
+                <option value="masaza_relax">Masaza relax</option>
+            </select>
+
+            <label for="cena">Cena:</label>
+            <input type="number" id="cena" name="cena" readonly>
+
+            <label for="termin">Izaberite termin:</label>
+            <input type="datetime-local" id="termin" name="termin" required>
+
+            <input type="submit" value="Rezerviši">
+        </form>
+    </section>
+    <script>
+        // Postavljanje cena u zavisnosti od izabrane usluge
+        document.getElementById("usluge").addEventListener("change", function() {
+            const selectedUsluga = this.value;
+            const cenaInput = document.getElementById("cena");
+
+            // Mapa cena za svaku uslugu
+            const cenaMap = {
+                "sisanje_kratka_kosa": 1000,
+                "sisanje_srednja_kosa": 1200,
+                "sisanje_duga_kosa": 1500,
+                "manikir": 800,
+                "pedikir": 900,
+                "masaza_sportska": 1200,
+                "masaza_relax": 1500
+            };
+
+            if (selectedUsluga in cenaMap) {
+                cenaInput.value = cenaMap[selectedUsluga];
+            } else {
+                cenaInput.value = "";
+            }
+        });
+    </script>
+</body>
+</html>

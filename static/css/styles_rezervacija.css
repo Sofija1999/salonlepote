@@ -1,0 +1,115 @@
+/* Resetiranje stilova */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Osnovni stil body-a */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+/* Header stil */
+header {
+    background-color: #333;
+    color: #fff;
+    text-align: center;
+    padding: 1rem;
+}
+
+/* Navigacija stil */
+nav {
+    background-color: #444;
+    color: #fff;
+    text-align: center;
+    padding: 0.5rem;
+}
+
+nav ul {
+    list-style: none;
+}
+
+nav ul li {
+    display: inline-block;
+    margin-right: 1rem;
+}
+
+nav ul li a {
+    color: #fff;
+    text-decoration: none;
+}
+
+/* Stil sekcije za rezervaciju */
+#rezervacija {
+    padding: 2rem;
+    background-color: #fff;
+    margin-top: 2rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    margin-bottom: 1rem;
+}
+
+/* Stil forme za rezervaciju */
+form {
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+label {
+    font-weight: bold;
+}
+
+/* Dodatni stil za labelu */
+label {
+    grid-column: 1;
+    align-self: center;
+}
+
+/* Stil unosa */
+input[type="text"],
+input[type="email"],
+input[type="number"],
+select,
+input[type="datetime-local"] {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+/* Stil dugmeta za slanje */
+input[type="submit"] {
+    grid-column: span 2;
+    background-color: #007bff;
+    color: #fff;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+input[type="submit"]:hover {
+    background-color: #0056b3;
+}
+
+/* Dodatni stil za padajući meni (select) */
+select {
+    appearance: none;
+    background: url("down-arrow.png") no-repeat right center;
+    background-size: 20px;
+    padding-right: 30px;
+}
+
+/* Dodatni stil za readonly input polje (cena) */
+input[readonly] {
+    background-color: #f0f0f0;
+    cursor: not-allowed;
+}
