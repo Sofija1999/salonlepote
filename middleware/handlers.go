@@ -3,6 +3,7 @@ package middleware
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"math/rand"
@@ -86,7 +87,8 @@ func CreateReservation(w http.ResponseWriter, r *http.Request) {
 
 	err := json.NewDecoder(r.Body).Decode(&reservation)
 	if err != nil {
-		log.Fatalf("Unable to decode the request body, %v", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
 	}
 
 	// Prvo kreiramo ili dohvatamo korisnika na osnovu email adrese
@@ -107,19 +109,11 @@ func insertReservation(customerID int64, reservation models.ReservationRequest) 
 	defer db.Close()
 
 	///Check time for reservation////
-	isFree, err := checkOverlap(db, reservation.UslugaID, reservation.Termin)
+	/*isFree, err := checkOverlap(db, reservation.UslugaID, reservation.Termin)
 	if isFree == false {
 		log.Fatalf("Vec postoji rezervacija u ovom terminu, probajte neki drugi termin!")
-	}
+	}*/
 	//////
-
-	////Check number of services
-	paranBrojUsluga, err := checkNumberOfService(db, customerID, reservation.UslugaID)
-	if paranBrojUsluga == false {
-		reservation.Cena = int64(float64(reservation.Cena) * 0.9)
-		fmt.Println("Dobili ste popust na svaku drugu uslugu iz iste kategorije")
-	}
-	/////
 
 	/////Check early bird
 	layout := "2006-01-02 15:04:05"
@@ -154,8 +148,8 @@ func insertReservation(customerID int64, reservation models.ReservationRequest) 
 
 	sqlStatement := `
 		INSERT INTO rezervacija(
-			vreme, promo_kod, token,ukupna_cena, kupac_id, usluga_id
-		) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`
+			vreme, promo_kod, token,ukupna_cena, kupac_id
+		) VALUES ($1, $2, $3, $4, $5) RETURNING id`
 
 	var id int64
 
@@ -164,14 +158,39 @@ func insertReservation(customerID int64, reservation models.ReservationRequest) 
 
 	err = db.QueryRow(
 		sqlStatement,
-		reservation.Termin, promokod, token, reservation.Cena, customerID, reservation.UslugaID,
+		reservation.Termin, promokod, token, reservation.Cena, customerID,
 	).Scan(&id)
 
 	if err != nil {
 		log.Fatalf("Unable to execute the query %v", err)
 	}
 
+	// Dodajemo stavke rezervacije u bazu
+	for _, stavka := range reservation.StavkeRezervacije {
+		applyDiscountToStavka(db, stavka)
+		insertStavkaRezervacije(id, stavka)
+	}
+
 	return id
+}
+
+func insertStavkaRezervacije(rezervacijaID int64, stavka models.StavkaRezervacije) {
+	db := createConnection()
+	defer db.Close()
+
+	sqlStatement := `
+		INSERT INTO stavka_rezervacije(
+			rezervacija_id, usluga_id, usluga_naziv, cena
+		) VALUES ($1, $2, $3, $4)`
+
+	_, err := db.Exec(
+		sqlStatement,
+		rezervacijaID, stavka.UslugaID, stavka.UslugaNaziv, stavka.Cena,
+	)
+
+	if err != nil {
+		log.Fatalf("Unable to execute the query %v", err)
+	}
 }
 
 func CreateCustomer(w http.ResponseWriter, r *http.Request) {
@@ -225,21 +244,32 @@ func getOrCreateCustomer(kupac models.Kupac) int64 {
 	return customerID
 }
 
-func checkNumberOfService(db *sql.DB, kupacID int64, uslugaID int) (bool, error) {
-	//brojac
-	var brojRezervacija int
+func applyDiscount(price int64) int64 {
+	return int64(float64(price) * 0.9)
+}
 
-	//upit za prebrojavanje rezervacija
-	query := "SELECT COUNT(*) FROM rezervacija r JOIN usluga u ON r.usluga_id = u.id WHERE r.kupac_id = $1 AND u.kategorija_id = (SELECT kategorija_id FROM usluga WHERE id = $2)"
-	err := db.QueryRow(query, kupacID, uslugaID).Scan(&brojRezervacija)
+func applyDiscountToStavka(db *sql.DB, stavka models.StavkaRezervacije) error {
+	// Upit za prebrojavanje prethodnih rezervacija sa istim rezervacija_id i istom kategorijom usluge
+	query := `
+		SELECT COUNT(*) FROM stavka_rezervacije sr
+		JOIN rezervacija r ON sr.rezervacija_id = r.id
+		JOIN usluga u ON sr.usluga_id = u.id
+		WHERE r.rezervacija_id = $1 AND u.kategorija_id = (SELECT kategorija_id FROM usluga WHERE id = $2)`
+
+	var brojRezervacija int
+	err := db.QueryRow(query, stavka.RezervacijaID, stavka.UslugaID).Scan(&brojRezervacija)
 	if err != nil {
-		return false, err
+		return err
+	}
+	fmt.Println(brojRezervacija)
+
+	// Ako je broj rezervacija neparnih, primeni popust na cenu stavke
+	if brojRezervacija%2 == 1 {
+		fmt.Println("uslo je u paran!")
+		stavka.Cena = applyDiscount(stavka.Cena)
 	}
 
-	// Provera da li je broj rezervacija paran ili neparan
-	isParan := brojRezervacija%2 == 0
-
-	return isParan, nil
+	return nil
 }
 
 func earlyBird(termin time.Time) bool {
@@ -290,11 +320,11 @@ func parseDurationString(durationStr string) (time.Duration, error) {
 	return duration, nil
 }
 
-func checkOverlap(db *sql.DB, uslugaID int, termin string) (bool, error) {
+func checkOverlap(db *sql.DB, uslugaID int64, termin string) (bool, error) {
 	// Izvuci trajanje usluge iz baze
 	var trajanjeStr string
 	query := "SELECT trajanje FROM usluga WHERE id = $1"
-	err := db.QueryRow(query, uslugaID).Scan(&trajanjeStr)
+	err := db.QueryRow(query, termin).Scan(&trajanjeStr)
 	fmt.Println(trajanjeStr)
 	if err != nil {
 		return false, err
@@ -336,3 +366,98 @@ func checkOverlap(db *sql.DB, uslugaID int, termin string) (bool, error) {
 	// Ako ima preklapanja, rezervacija se ne može napraviti
 	return brojPreklapanja == 0, nil
 }
+
+// ///brisanje rezervacije i njenih stavki ///////////////
+func DeleteReservation(w http.ResponseWriter, r *http.Request) {
+	var request models.DeleteReservationRequest
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Provera da li rezervacija postoji sa datim tokenom i emailom
+	reservationID, err := findReservationID(request.Token, request.Email)
+	if err != nil {
+		http.Error(w, "Reservation not found", http.StatusNotFound)
+		return
+	}
+
+	// Brisanje svih stavki rezervacije
+	err = deleteStavkeRezervacije(reservationID)
+	if err != nil {
+		http.Error(w, "Failed to delete reservation items", http.StatusInternalServerError)
+		return
+	}
+
+	// Brisanje rezervacije
+	deletedRows := deleteReservation(reservationID)
+	if deletedRows == 0 {
+		http.Error(w, "Failed to delete reservation", http.StatusInternalServerError)
+		return
+	}
+
+	msg := fmt.Sprintf("Reservation deleted successfully, rows affected: %v", deletedRows)
+	res := models.DeleteReservationResponse{
+		ID:      reservationID,
+		Message: msg,
+	}
+	json.NewEncoder(w).Encode(res)
+}
+
+func findReservationID(token, email string) (int64, error) {
+	db := createConnection()
+	defer db.Close()
+
+	// Provera da li postoji rezervacija sa datim tokenom i emailom kupca
+	var reservationID int64
+	sqlStatement := `SELECT r.id FROM rezervacija r
+					 JOIN kupac k ON r.kupac_id = k.id
+					 WHERE r.token = $1 AND k.email = $2`
+
+	err := db.QueryRow(sqlStatement, token, email).Scan(&reservationID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, errors.New("Reservation not found")
+		}
+		return 0, err
+	}
+
+	return reservationID, nil
+}
+
+func deleteReservation(id int64) int64 {
+	db := createConnection()
+	defer db.Close()
+
+	sqlStatement := `DELETE FROM rezervacija WHERE id=$1`
+
+	res, err := db.Exec(sqlStatement, id)
+	if err != nil {
+		log.Fatalf("Unable to execute the query %v", err)
+	}
+
+	rowsAffected, err := res.RowsAffected()
+	if err != nil {
+		log.Fatalf("Error while checking the affected rows %v", err)
+	}
+
+	return rowsAffected
+}
+
+func deleteStavkeRezervacije(reservationID int64) error {
+	db := createConnection()
+	defer db.Close()
+
+	sqlStatement := `DELETE FROM stavka_rezervacije WHERE rezervacija_id = $1`
+
+	_, err := db.Exec(sqlStatement, reservationID)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+////////////////////////

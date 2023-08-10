@@ -18,15 +18,33 @@ type KupacResponse struct {
 	Message string `json:"message,omitempty"`
 }
 
+type StavkaRezervacije struct {
+	ID            int64  `json:"id"`
+	RezervacijaID int64  `json:"rezervacija_id"`
+	UslugaID      int    `json:"usluga_id"`
+	UslugaNaziv   string `json:"usluga_naziv"`
+	Cena          int64  `json:"cena"`
+}
+
 type ReservationRequest struct {
-	Kupac    Kupac  `json:"kupac"`
-	Termin   string `json:"termin"`
-	UslugaID int    `json:"usluga_id"`
-	Cena     int64  `json:"cena"`
-	PromoKod string `json:"promo_kod,omitempty"`
+	Kupac             Kupac               `json:"kupac"`
+	Termin            string              `json:"termin"`
+	Cena              int64               `json:"cena"`
+	PromoKod          string              `json:"promo_kod,omitempty"`
+	StavkeRezervacije []StavkaRezervacije `json:"stavke_rezervacije"`
 }
 
 type ReservationResponse struct {
+	ID      int64  `json:"id"`
+	Message string `json:"message"`
+}
+
+type DeleteReservationRequest struct {
+	Token string `json:"token"`
+	Email string `json:"email"`
+}
+
+type DeleteReservationResponse struct {
 	ID      int64  `json:"id"`
 	Message string `json:"message"`
 }

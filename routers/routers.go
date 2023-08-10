@@ -13,6 +13,7 @@ func Router() *mux.Router {
 	//Route Handlers
 	router.HandleFunc("/api/newkupac", middleware.CreateCustomer).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/newreservation", middleware.CreateReservation).Methods("POST", "OPTIONS")
+	router.HandleFunc("/api/deletereservation", middleware.DeleteReservation).Methods("DELETE", "OPTIONS")
 
 	return router
 }
