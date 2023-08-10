@@ -369,13 +369,24 @@ func checkOverlap(db *sql.DB, uslugaID int64, termin string) (bool, error) {
 
 // ///brisanje rezervacije i njenih stavki ///////////////
 func DeleteReservation(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	fmt.Println("usao u delete funkciju")
+
 	var request models.DeleteReservationRequest
+
+	fmt.Println("dekodiranje...")
 
 	err := json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
+		fmt.Println("error pri dekodiranju", err)
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	fmt.Println("uspesno dekodiranje")
 
 	// Provera da li rezervacija postoji sa datim tokenom i emailom
 	reservationID, err := findReservationID(request.Token, request.Email)
@@ -403,6 +414,8 @@ func DeleteReservation(w http.ResponseWriter, r *http.Request) {
 		ID:      reservationID,
 		Message: msg,
 	}
+	// Ako je sve u redu, postavite HTTP status 200 OK
+	w.WriteHeader(http.StatusOK)
 	json.NewEncoder(w).Encode(res)
 }
 

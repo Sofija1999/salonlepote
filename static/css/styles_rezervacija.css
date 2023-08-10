@@ -1,115 +1,126 @@
-/* Resetiranje stilova */
+/* Resetovanje margina i paddinga za sve elemente */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
-}
-
-/* Osnovni stil body-a */
-body {
+  }
+  
+  /* Postavljanje fonta i pozadinske boje za telo dokumenta */
+  body {
     font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
+    background-color: #f2f2f2;
     color: #333;
-}
-
-/* Header stil */
-header {
-    background-color: #333;
-    color: #fff;
+  }
+  
+  /* Stilizacija glavnog naslova */
+  h1 {
+    margin: 20px 0;
     text-align: center;
-    padding: 1rem;
-}
-
-/* Navigacija stil */
-nav {
-    background-color: #444;
-    color: #fff;
-    text-align: center;
-    padding: 0.5rem;
-}
-
-nav ul {
-    list-style: none;
-}
-
-nav ul li {
-    display: inline-block;
-    margin-right: 1rem;
-}
-
-nav ul li a {
-    color: #fff;
-    text-decoration: none;
-}
-
-/* Stil sekcije za rezervaciju */
-#rezervacija {
-    padding: 2rem;
-    background-color: #fff;
-    margin-top: 2rem;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-h2 {
-    margin-bottom: 1rem;
-}
-
-/* Stil forme za rezervaciju */
-form {
-    display: grid;
-    grid-template-columns: max-content 1fr;
-    gap: 1rem;
-    margin-top: 1.5rem;
-}
-
-label {
+    color: #333;
+    font-size: 36px;
+    animation: fadeIn 1s ease;
+  }
+  
+  /* Stilizacija forme za unos */
+  form {
+    max-width: 600px;
+    margin: 0 auto;
+    background-color: white;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    animation: fadeIn 1s ease;
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 5px;
     font-weight: bold;
-}
-
-/* Dodatni stil za labelu */
-label {
-    grid-column: 1;
-    align-self: center;
-}
-
-/* Stil unosa */
-input[type="text"],
-input[type="email"],
-input[type="number"],
-select,
-input[type="datetime-local"] {
+  }
+  
+  input[type="text"],
+  input[type="email"] {
     width: 100%;
-    padding: 0.5rem;
+    padding: 10px;
+    margin: 5px 0;
     border: 1px solid #ccc;
     border-radius: 4px;
-}
-
-/* Stil dugmeta za slanje */
-input[type="submit"] {
-    grid-column: span 2;
+    font-size: 16px;
+    transition: border-color 0.3s ease;
+  }
+  
+  input[type="text"]:focus,
+  input[type="email"]:focus {
+    border-color: #007bff;
+  }
+  
+  /* Stilizacija tabele za rezervaciju */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+    animation: fadeIn 1s ease;
+  }
+  
+  th,
+  td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+  }
+  
+  /* Stilizacija tabele za rezervaciju - zaglavlje */
+  thead {
+    background-color: #f2f2f2;
+  }
+  
+  /* Stilizacija potvrda rezervacije dugmeta */
+  button {
+    padding: 10px 20px;
     background-color: #007bff;
-    color: #fff;
-    padding: 0.5rem 1rem;
+    color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-input[type="submit"]:hover {
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+  }
+  
+  button:hover {
     background-color: #0056b3;
-}
-
-/* Dodatni stil za padajući meni (select) */
-select {
-    appearance: none;
-    background: url("down-arrow.png") no-repeat right center;
-    background-size: 20px;
-    padding-right: 30px;
-}
-
-/* Dodatni stil za readonly input polje (cena) */
-input[readonly] {
+  }
+  
+  /* Stilizacija selektora usluge */
+  .usluga-select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  
+  /* Stilizacija spana za cenu */
+  .cena-span {
+    display: inline-block;
+    padding: 5px 10px;
     background-color: #f0f0f0;
-    cursor: not-allowed;
-}
+    border-radius: 4px;
+    font-size: 16px;
+    color: #333;
+    margin-left: 10px;
+  }
+  
+  /* Stilizacija linka za povratak na osnovnu stranicu */
+  .back-link {
+    display: block;
+    text-align: center;
+    margin-top: 20px;
+    font-size: 18px;
+    color: #007bff;
+    text-decoration: none;
+    transition: color 0.3s ease;
+  }
+  
+  .back-link:hover {
+    color: #0056b3;
+  }
