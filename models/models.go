@@ -48,3 +48,27 @@ type DeleteReservationResponse struct {
 	ID      int64  `json:"id"`
 	Message string `json:"message"`
 }
+
+type GetReservationRequest struct {
+	Token string `json:"token"`
+	Email string `json:"email"`
+}
+
+type GetReservationResponse struct {
+	ID                int64                  `json:"id"`
+	UkupnaCena        int64                  `json:"ukupna_cena"`
+	StavkeRezervacije []StavkaRezervacijeGet `json:"stavke_rezervacije"`
+}
+
+type StavkaRezervacijeGet struct {
+	ID          int64  `json:"id"`
+	UslugaID    int    `json:"usluga_id"`
+	UslugaNaziv string `json:"usluga_naziv"`
+	Cena        int64  `json:"cena"`
+}
+
+/*type DeleteStavkaRezervacije struct {
+	ID int64 `json:"id"`
+	Cena int64 `json:"cena"`
+	UkupnaCena int64 `json:"ukupna_cena"`
+}*/

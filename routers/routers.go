@@ -14,6 +14,8 @@ func Router() *mux.Router {
 	router.HandleFunc("/api/newkupac", middleware.CreateCustomer).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/newreservation", middleware.CreateReservation).Methods("POST", "OPTIONS")
 	router.HandleFunc("/api/deletereservation", middleware.DeleteReservation).Methods("DELETE", "OPTIONS")
+	router.HandleFunc("/api/reservation", middleware.GetReservation).Methods("GET", "OPTIONS")
+	//router.HandleFunc("/api/deletestavka", middleware.DeleteStavka).Methods("DELETE", "OPTIONS")
 
 	return router
 }
