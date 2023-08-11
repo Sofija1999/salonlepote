@@ -477,18 +477,22 @@ func deleteStavkeRezervacije(reservationID int64) error {
 /////// Get Reservation////////
 
 func GetReservation(w http.ResponseWriter, r *http.Request) {
-	var request models.GetReservationRequest
 	fmt.Println("usao je u GetRes")
 
-	err := json.NewDecoder(r.Body).Decode(&request)
-	if err != nil {
-		fmt.Println("error pri dekodiranju", err)
-		http.Error(w, err.Error(), http.StatusBadRequest)
-		return
-	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	token := r.URL.Query().Get("token")
+	email := r.URL.Query().Get("email")
+
+	// Sada možete koristiti token i email u ostatku vaše handler funkcije
+	fmt.Println("Token:", token)
+	fmt.Println("Email:", email)
 
 	// Izvršite upit za dohvat rezervacije i njenih stavki
-	reservation, err := getReservation(request.Token, request.Email)
+	reservation, err := getReservation(token, email)
 	if err != nil {
 		// Slanje odgovora u slučaju greške
 		fmt.Println("ovde je greska!!!")
@@ -518,6 +522,8 @@ func getReservation(token, email string) (models.GetReservationResponse, error) 
 	// Prvo dobijemo ID kupca na osnovu email-a
 	var kupacID int64
 	err := db.QueryRow("SELECT id FROM kupac WHERE email = $1", email).Scan(&kupacID)
+	fmt.Println(kupacID)
+	fmt.Println(email)
 	if err != nil {
 		return reservation, err
 	}
