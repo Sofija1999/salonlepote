@@ -474,3 +474,98 @@ func deleteStavkeRezervacije(reservationID int64) error {
 }
 
 ////////////////////////
+/////// Get Reservation////////
+
+func GetReservation(w http.ResponseWriter, r *http.Request) {
+	var request models.GetReservationRequest
+	fmt.Println("usao je u GetRes")
+
+	err := json.NewDecoder(r.Body).Decode(&request)
+	if err != nil {
+		fmt.Println("error pri dekodiranju", err)
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Izvršite upit za dohvat rezervacije i njenih stavki
+	reservation, err := getReservation(request.Token, request.Email)
+	if err != nil {
+		// Slanje odgovora u slučaju greške
+		fmt.Println("ovde je greska!!!")
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Internal Server Error"))
+		return
+	}
+
+	// Postavite Content-Type zaglavlje na application/json
+	w.Header().Set("Content-Type", "application/json")
+
+	// Koristite json.NewEncoder za slanje odgovora u JSON formatu
+	if err := json.NewEncoder(w).Encode(reservation); err != nil {
+		// Slanje odgovora u slučaju greške
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte("Internal Server Error"))
+	}
+}
+
+func getReservation(token, email string) (models.GetReservationResponse, error) {
+	fmt.Println("usao je u getRes")
+	db := createConnection()
+	defer db.Close()
+
+	var reservation models.GetReservationResponse
+
+	// Prvo dobijemo ID kupca na osnovu email-a
+	var kupacID int64
+	err := db.QueryRow("SELECT id FROM kupac WHERE email = $1", email).Scan(&kupacID)
+	if err != nil {
+		return reservation, err
+	}
+	fmt.Println(kupacID)
+
+	err = db.QueryRow(`
+	SELECT r.id, r.ukupna_cena
+	FROM rezervacija r
+	WHERE r.token = $1 AND r.kupac_id = $2`,
+		token, kupacID).Scan(&reservation.ID, &reservation.UkupnaCena)
+
+	fmt.Println(token)
+	fmt.Println(reservation.ID)
+	fmt.Println(reservation.UkupnaCena)
+
+	// Provera da li je rezervacija pronađena ili ne
+	if err != nil {
+		if err == sql.ErrNoRows {
+			fmt.Println("greska!!!")
+			return reservation, fmt.Errorf("Rezervacija nije pronađena")
+		}
+		fmt.Println("greska 2")
+		return reservation, err
+	}
+
+	// Dohvat stavki rezervacije
+	rows, err := db.Query(`
+	 SELECT srg.id, srg.usluga_id, us.naziv AS usluga_naziv, us.cena
+	 FROM stavka_rezervacije srg
+	 JOIN usluga us ON srg.usluga_id = us.id
+	 WHERE srg.rezervacija_id = $1`, reservation.ID)
+	if err != nil {
+		fmt.Println("greska 3")
+		return reservation, err
+	}
+	defer rows.Close()
+
+	var stavke []models.StavkaRezervacijeGet
+	for rows.Next() {
+		var stavka models.StavkaRezervacijeGet
+		if err = rows.Scan(&stavka.ID, &stavka.UslugaID, &stavka.UslugaNaziv, &stavka.Cena); err != nil {
+			fmt.Println("ovde je greska")
+			return reservation, err
+		}
+		stavke = append(stavke, stavka)
+	}
+	reservation.StavkeRezervacije = stavke
+
+	fmt.Println("kraj getRes")
+	return reservation, nil
+}
