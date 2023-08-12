@@ -65,7 +65,7 @@
 
 
     
-    <form id="otkazFormagdfgd">
+    <form id="otkazForma">
     <section id="otkaziRezervaciju">
         <h2>Otkazivanje rezervacije</h2>
         <p>Ukoliko želite da otkazete rezervaciju, molimo vas unesite token rezervacije i vaš e-mail.</p>
@@ -120,30 +120,28 @@
                     data: JSON.stringify(jsonData), 
                     dataType: "json",
                     contentType: "application/json",
-                })
-                .done((data) => {
-                    console.log({ data });
-                    $("#rezultatPoruka").text(data.message);
-                })
-                .fail((err) => {
-                    console.error(err);
-                    $("#rezultatPoruka").text("Došlo je do greške prilikom otkazivanja rezervacije.");
+                    success: function (data, text) {
+                        console.log(data)
+                    },
+                    error: function (request, status, error) {
+                        alert(request.responseText);
+                    }
                 });
             });
 
 
             function updateCena(selectElement) {
 
-                const selectedOption = selectElement.options[selectElement.selectedIndex];
-                console.log(selectedOption)
-        const cena = selectedOption.getAttribute('data-cena');
-        console.log(cena)
-        const redUsluge = selectElement.closest('.usluga-row');
-        console.log(redUsluge)
-        const brojUsluga = redUsluge.id.split('-')[1];
-        console.log(brojUsluga)
-        const cenaSpan = redUsluge.querySelector(`.prikazanaCena-${brojUsluga}`);
-        console.log(cenaSpan)
+            const selectedOption = selectElement.options[selectElement.selectedIndex];
+            console.log(selectedOption)
+            const cena = selectedOption.getAttribute('data-cena');
+            console.log(cena)
+            const redUsluge = selectElement.closest('.usluga-row');
+            console.log(redUsluge)
+            const brojUsluga = redUsluge.id.split('-')[1];
+            console.log(brojUsluga)
+            const cenaSpan = redUsluge.querySelector(`.prikazanaCena-${brojUsluga}`);
+            console.log(cenaSpan)
     
         
     if (cenaSpan) {
@@ -192,7 +190,7 @@ function dodajUslugu() {
             uslugeContainer.appendChild(novaUslugaDiv);
             updateCena(document.getElementById(`usluga-select-${brojUsluga}`));
             
-            brojUsluga++; // Povećaj broj usluga za buduće ID vrednosti
+            brojUsluga++; 
         }
 
         function pretraziRezervacije() {
@@ -219,6 +217,8 @@ function dodajUslugu() {
             rezultatHtml += `<td>${usluga.id}</td>`;
             rezultatHtml += `<td>${usluga.usluga_naziv}</td>`;
             rezultatHtml += `<td>${usluga.cena} dinara</td>`;
+             // Dodajemo dugme za brisanje sa atributom onclick koji poziva funkciju za brisanje
+            rezultatHtml += `<td><button onclick="obrisiStavku(${usluga.id}, ${usluga.cena})">Obriši</button></td>`;
             rezultatHtml += `</tr>`;
         });
 
