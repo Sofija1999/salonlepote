@@ -40,14 +40,20 @@
         <label for="potvrdaEmaila">Potvrda emaila:</label>
         <input type="email" id="potvrdaEmaila" name="potvrdaEmaila" required>
 
+        <label for="termin">Izaberite termin:</label>
+        <input type="datetime-local" id="termin" name="termin" required>
+
         <label for="promokod">PromoKod:</label>
         <input type="promokod" id="promokod" name="promokod">
 
+        <h2>Ukupna cena: <span id="ukupnaCena">0</span> dinara</h2>
+
         <h3>Usluge:</h3>
         <div id="usluge-container">
+            <input id="brUsluge" type="hidden" value="1" />
             <div class="usluga-row">
-                <label for="usluga-0">Usluga 1:</label>
-                <select id="usluga-0" class="usluga-select" onchange="updateCena(this)">
+                <label for="usluga-select-1">Usluga 1:</label>
+                <select id="usluga-select-1" class="usluga-select" onchange="updateCena(this.id )">
                     <option value="0" data-cena="0">Izaberite uslugu</option>
                     <option value="450" data-cena="450">Sisanje kratke kose</option>
                     <option value="600" data-cena="600">Sisanje srednje kose</option>
@@ -57,7 +63,8 @@
                     <option value="2500" data-cena="2500">Masaza sportska</option>
                     <option value="3000" data-cena="3000">Masaza relax</option>
                 </select>
-                <span class="cena-span">Cena: <span class="prikazanaCena-0">0</span> dinara</span> </div>
+                <span class="cena-span">Cena: <span class="prikazanaCena-1">0</span> dinara</span> 
+            </div>
         </div>
         <button type="button" onclick="dodajUslugu()">Dodaj uslugu</button>
         <button onclick="submitReservation()">Potvrdi rezervaciju</button>
@@ -66,21 +73,21 @@
 
     
     <form id="otkazForma">
-    <section id="otkaziRezervaciju">
-        <h2>Otkazivanje rezervacije</h2>
-        <p>Ukoliko želite da otkazete rezervaciju, molimo vas unesite token rezervacije i vaš e-mail.</p>
-        
-            <label for="token">Token rezervacije:</label>
-            <input type="text" id="token" name="token" required>
+        <section id="otkaziRezervaciju">
+            <h2>Otkazivanje rezervacije</h2>
+            <p>Ukoliko želite da otkazete rezervaciju, molimo vas unesite token rezervacije i vaš e-mail.</p>
+            
+                <label for="token">Token rezervacije:</label>
+                <input type="text" id="token" name="token" required>
 
-            <label for="emailOtkaz">Vaš e-mail:</label>
-            <input type="email" id="emailOtkaz" name="email" required>
+                <label for="emailOtkaz">Vaš e-mail:</label>
+                <input type="email" id="emailOtkaz" name="email" required>
 
-            <button type="submit">Otkaži rezervaciju</button>
+                <button type="submit">Otkaži rezervaciju</button>
 
-        <div id="rezultatPoruka"></div>
-    </section>
-</form>
+            <div id="rezultatPoruka"></div>
+        </section>
+    </form>
 
 <form id="pretragaForma">        
     <h2>Izmeni rezervaciju</h2>
@@ -93,8 +100,9 @@
     <input type="email" id="pretragaEmail" name="email" required>
 
     <button type="button" onclick="pretraziRezervacije()">Pretraga</button>
+    <div id="rezervacijeContainer">
+
 </form>
-<div id="rezervacijeContainer">
     <!-- Ovde će se prikazivati rezultati pretrage -->
 </div>
 
@@ -124,117 +132,132 @@
                         console.log(data)
                     },
                     error: function (request, status, error) {
-                        alert(request.responseText);
+                        console.log(request.responseText);
                     }
                 });
             });
 
+            // selectId is id of select tag
+            function updateCena(selectId) {
+                let brUsluge = selectId.split('-')[2];
+                console.log(brUsluge);
 
-            function updateCena(selectElement) {
+                let selectedCena = $(`#${selectId}`).val();
+                console.log(selectedCena)
 
-            const selectedOption = selectElement.options[selectElement.selectedIndex];
-            console.log(selectedOption)
-            const cena = selectedOption.getAttribute('data-cena');
-            console.log(cena)
-            const redUsluge = selectElement.closest('.usluga-row');
-            console.log(redUsluge)
-            const brojUsluga = redUsluge.id.split('-')[1];
-            console.log(brojUsluga)
-            const cenaSpan = redUsluge.querySelector(`.prikazanaCena-${brojUsluga}`);
-            console.log(cenaSpan)
-    
-        
-    if (cenaSpan) {
-        if (cena !== null) {
-            cenaSpan.textContent = cena;
-        } else {
-            cenaSpan.textContent = '0';
-        }
-    }
-    if (brojUsluga === '0') {
-        const prviCenaSpan = document.getElementById('prikazanaCena-0');
-        if (cena !== null) {
-            prviCenaSpan.textContent = cena;
-        } else {
-            prviCenaSpan.textContent = '0';
-        }
-    }
+                $(`.prikazanaCena-${brUsluge}`).html(selectedCena);
 
-}
+                // Nakon dodavanja, ažurirajte ukupnu cenu
+                azurirajUkupnuCenu();
+            }
 
+            function dodajUslugu() {
+                let brojUsluga = $("#brUsluge").val(); // find by element id and get its value
+                brojUsluga++;
 
-function dodajUslugu() {
-    let brojUsluga = 1; // Deklaracija broja usluga unutar funkcije
+                let novaUsluga = `<div class="usluga-row">
+                                <label for="usluga-select-${brojUsluga}">Usluga ${brojUsluga}:</label>
+                                <select id="usluga-select-${brojUsluga}" class="usluga-select" onchange="updateCena(this.id)">
+                                    <option value="0" data-cena="0">Izaberite uslugu</option>
+                                    <option value="450" data-cena="450">Sisanje kratke kose</option>
+                                    <option value="600" data-cena="600">Sisanje srednje kose</option>
+                                    <option value="800" data-cena="800">Sisanje duge kose</option>
+                                    <option value="1500" data-cena="1500">Manikir</option>
+                                    <option value="2000" data-cena="2000">Pedikir</option>
+                                    <option value="2500" data-cena="2500">Masaza sportska</option>
+                                    <option value="3000" data-cena="3000">Masaza relax</option>
+                                </select>
+                                <span class="cena-span">Cena: <span class="prikazanaCena-${brojUsluga}">0</span> dinara</span> 
+                            </div>`;
 
-    const uslugeContainer = document.getElementById('usluge-container');
+                $("#usluge-container").append(novaUsluga); // append to element with id="usluge-container"
+                $("#brUsluge").val(brojUsluga); // new value for input hidden with id="brUsluge"
+
+                
+            }
+
+// function dodajUslugu() {
+//     let brojUsluga = 1; // Deklaracija broja usluga unutar funkcije
+
+//     const uslugeContainer = document.getElementById('usluge-container');
             
-            const novaUslugaDiv = document.createElement('div');
-            novaUslugaDiv.classList.add('usluga-row');
-            novaUslugaDiv.id = `usluga-${brojUsluga}`;
+//             const novaUslugaDiv = document.createElement('div');
+//             novaUslugaDiv.classList.add('usluga-row');
+//             novaUslugaDiv.id = `usluga-${brojUsluga}`;
             
-            novaUslugaDiv.innerHTML = `
-                <label for="usluga-select-${brojUsluga}">Usluga ${brojUsluga + 1}:</label>
-                <select id="usluga-select-${brojUsluga}" class="usluga-select" onchange="updateCena(this)">
-                    <option value="0" data-cena="0">Izaberite uslugu</option>
-                    <option value="450" data-cena="450">Sisanje kratke kose</option>
-                    <option value="600" data-cena="600">Sisanje srednje kose</option>
-                    <option value="800" data-cena="800">Sisanje duge kose</option>
-                    <option value="1500" data-cena="1500">Manikir</option>
-                    <option value="2000" data-cena="2000">Pedikir</option>
-                    <option value="2500" data-cena="2500">Masaza sportska</option>
-                    <option value="3000" data-cena="3000">Masaza relax</option>
-                </select>
-                <span class="cena-span">Cena: <span class="prikazanaCena-${brojUsluga}">0</span> dinara</span>
-            `;
+//             novaUslugaDiv.innerHTML = `
+//                 <label for="usluga-select-${brojUsluga}">Usluga ${brojUsluga + 1}:</label>
+//                 <select id="usluga-select-${brojUsluga}" class="usluga-select" onchange="updateCena(this)">
+//                     <option value="0" data-cena="0">Izaberite uslugu</option>
+//                     <option value="450" data-cena="450">Sisanje kratke kose</option>
+//                     <option value="600" data-cena="600">Sisanje srednje kose</option>
+//                     <option value="800" data-cena="800">Sisanje duge kose</option>
+//                     <option value="1500" data-cena="1500">Manikir</option>
+//                     <option value="2000" data-cena="2000">Pedikir</option>
+//                     <option value="2500" data-cena="2500">Masaza sportska</option>
+//                     <option value="3000" data-cena="3000">Masaza relax</option>
+//                 </select>
+//                 <span class="cena-span">Cena: <span class="prikazanaCena-${brojUsluga}">0</span> dinara</span>
+//             `;
             
-            uslugeContainer.appendChild(novaUslugaDiv);
-            updateCena(document.getElementById(`usluga-select-${brojUsluga}`));
+//             uslugeContainer.appendChild(novaUslugaDiv);
+//             updateCena(document.getElementById(`usluga-select-${brojUsluga}`));
             
-            brojUsluga++; 
-        }
+//             brojUsluga++; // Povećaj broj usluga za buduće ID vrednosti
+//         }
 
         function pretraziRezervacije() {
             const token = $('#pretragaToken').val();
-         const email = $('#pretragaEmail').val();
+            const email = $('#pretragaEmail').val();
 
-        fetch(`http://localhost:8080/api/reservation?token=${token}&email=${email}`)
-    .then(response => response.json())
-    .then(data => {
-        const rezervacijeContainer = document.getElementById('rezervacijeContainer');
-        let rezultatHtml = '';
+            fetch(`http://localhost:8080/api/reservation?token=${token}&email=${email}`)
+            .then(response => response.json())
+            .then(data => {
+                const rezervacijeContainer = document.getElementById('rezervacijeContainer');
+                let rezultatHtml = '';
 
-        // Prikazujemo broj rezervacije i ukupnu cenu
-        rezultatHtml += `<p>Broj rezervacije: ${data.id}</p>`;
-        rezultatHtml += `<p>Ukupna cena: ${data.ukupna_cena} dinara</p>`;
+                // Prikazujemo broj rezervacije i ukupnu cenu
+                rezultatHtml += `<p>Broj rezervacije: ${data.id}</p>`;
+                rezultatHtml += `<p>Ukupna cena: ${data.ukupna_cena} dinara</p>`;
 
-        // Kreiramo tabelu za prikaz usluga
-        rezultatHtml += '<table>';
-        rezultatHtml += '<tr><th>Usluga ID</th><th>Naziv usluge</th><th>Cena usluge</th></tr>';
+                // Kreiramo tabelu za prikaz usluga
+                rezultatHtml += '<table>';
+                rezultatHtml += '<tr><th>Usluga ID</th><th>Naziv usluge</th><th>Cena usluge</th></tr>';
 
-        // Iteriramo kroz usluge rezervacije i dodajemo ih u tabelu
-        data.stavke_rezervacije.forEach((usluga) => {
-            rezultatHtml += `<tr>`;
-            rezultatHtml += `<td>${usluga.id}</td>`;
-            rezultatHtml += `<td>${usluga.usluga_naziv}</td>`;
-            rezultatHtml += `<td>${usluga.cena} dinara</td>`;
-             // Dodajemo dugme za brisanje sa atributom onclick koji poziva funkciju za brisanje
-            rezultatHtml += `<td><button onclick="obrisiStavku(${usluga.id}, ${usluga.cena})">Obriši</button></td>`;
-            rezultatHtml += `</tr>`;
+                // Iteriramo kroz usluge rezervacije i dodajemo ih u tabelu
+                data.stavke_rezervacije.forEach((usluga) => {
+                    rezultatHtml += `<tr>`;
+                    rezultatHtml += `<td>${usluga.id}</td>`;
+                    rezultatHtml += `<td>${usluga.usluga_naziv}</td>`;
+                    rezultatHtml += `<td>${usluga.cena} dinara</td>`;
+                    rezultatHtml += `</tr>`;
+                });
+
+                rezultatHtml += '</table>';
+
+                // Postavljamo generisani HTML u container
+                rezervacijeContainer.innerHTML = rezultatHtml;
+            })
+            .catch(error => {
+                console.error('Došlo je do greške pri pretrazi rezervacija:', error);
+                // Ovde možete prikazati neku poruku o grešci korisniku
+            });
+        }
+
+        // Funkcija za ažuriranje ukupne cene
+        function azurirajUkupnuCenu() {
+            ukupnaCena = 0;
+            $(".usluga-select").each(function() {
+        let cena = parseInt($(this).find(":selected").data("cena"));
+        ukupnaCena += cena;
+            });
+        $("#ukupnaCena").text(ukupnaCena);
+        }
+
+        // Povežite funkciju sa promenama u selektovanim uslugama
+        $(".usluga-select").change(function() {
+            azurirajUkupnuCenu();
         });
-
-        rezultatHtml += '</table>';
-
-        // Postavljamo generisani HTML u container
-        rezervacijeContainer.innerHTML = rezultatHtml;
-    })
-    .catch(error => {
-        console.error('Došlo je do greške pri pretrazi rezervacija:', error);
-        // Ovde možete prikazati neku poruku o grešci korisniku
-    });
-    }
-
-    
-
 
     </script>
 </body>
