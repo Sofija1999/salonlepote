@@ -83,6 +83,11 @@ func generateToken() string {
 }
 
 func CreateReservation(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "DELETE, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
 	var reservation models.ReservationRequest
 
 	err := json.NewDecoder(r.Body).Decode(&reservation)
@@ -96,15 +101,18 @@ func CreateReservation(w http.ResponseWriter, r *http.Request) {
 
 	// Zatim kreiramo rezervaciju sa dobijenim korisnikom
 	insertID := insertReservation(customerID, reservation)
+	fmt.Println(insertID)
 
 	res := models.ReservationResponse{
 		ID:      insertID,
 		Message: "Reservation created successfully",
 	}
+	fmt.Println(res)
 	json.NewEncoder(w).Encode(res)
 }
 
 func insertReservation(customerID int64, reservation models.ReservationRequest) int64 {
+	fmt.Println("usao u insert reservation")
 	db := createConnection()
 	defer db.Close()
 
@@ -116,9 +124,10 @@ func insertReservation(customerID int64, reservation models.ReservationRequest) 
 	//////
 
 	/////Check early bird
-	layout := "2006-01-02 15:04:05"
+	layout := "2006-01-02T15:04" // Format za datetime-local
 	termin, err := time.Parse(layout, reservation.Termin)
 	if err != nil {
+		fmt.Println("greska u menjanju vremena")
 		log.Fatalf("greska prilikom menjanja vremena")
 	}
 	isEarlyBird := earlyBird(termin)
@@ -164,31 +173,59 @@ func insertReservation(customerID int64, reservation models.ReservationRequest) 
 	if err != nil {
 		log.Fatalf("Unable to execute the query %v", err)
 	}
+	fmt.Println("prosao upisivanje rezervacije")
 
 	// Dodajemo stavke rezervacije u bazu
 	for _, stavka := range reservation.StavkeRezervacije {
-		applyDiscountToStavka(db, stavka)
+		fmt.Println("usao u for petlju za stavke")
+		//applyDiscountToStavka(db, stavka)
 		insertStavkaRezervacije(id, stavka)
 	}
 
 	return id
 }
 
-func insertStavkaRezervacije(rezervacijaID int64, stavka models.StavkaRezervacije) {
+func getUslugaIDByNaziv(naziv string) (int64, error) {
 	db := createConnection()
 	defer db.Close()
+
+	var uslugaID int64
+	sqlStatement := `SELECT id FROM usluga WHERE naziv = $1`
+	fmt.Println(naziv)
+
+	row := db.QueryRow(sqlStatement, naziv)
+	err := row.Scan(&uslugaID)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return 0, fmt.Errorf("Usluga sa nazivom '%s' nije pronađena", naziv)
+		}
+		return 0, err
+	}
+
+	return uslugaID, nil
+}
+
+func insertStavkaRezervacije(rezervacijaID int64, stavka models.StavkaRezervacije) {
+	fmt.Println("usao u insert stavka rez")
+	db := createConnection()
+	defer db.Close()
+
+	usluga_id, err := getUslugaIDByNaziv(stavka.UslugaNaziv)
+	fmt.Println(usluga_id)
 
 	sqlStatement := `
 		INSERT INTO stavka_rezervacije(
 			rezervacija_id, usluga_id, usluga_naziv, cena
 		) VALUES ($1, $2, $3, $4)`
 
-	_, err := db.Exec(
+	fmt.Println("prosao sqlStatement")
+	_, err = db.Exec(
 		sqlStatement,
-		rezervacijaID, stavka.UslugaID, stavka.UslugaNaziv, stavka.Cena,
+		rezervacijaID, usluga_id, stavka.UslugaNaziv, stavka.Cena,
 	)
 
 	if err != nil {
+		fmt.Println("error u insert stavka")
 		log.Fatalf("Unable to execute the query %v", err)
 	}
 }
@@ -248,8 +285,9 @@ func applyDiscount(price int64) int64 {
 	return int64(float64(price) * 0.9)
 }
 
-func applyDiscountToStavka(db *sql.DB, stavka models.StavkaRezervacije) error {
+/*func applyDiscountToStavka(db *sql.DB, stavka models.StavkaRezervacije) error {
 	// Upit za prebrojavanje prethodnih rezervacija sa istim rezervacija_id i istom kategorijom usluge
+	usluga_id, err := getUslugaIDByNaziv(stavka.UslugaNaziv)
 	query := `
 		SELECT COUNT(*) FROM stavka_rezervacije sr
 		JOIN rezervacija r ON sr.rezervacija_id = r.id
@@ -257,7 +295,7 @@ func applyDiscountToStavka(db *sql.DB, stavka models.StavkaRezervacije) error {
 		WHERE r.rezervacija_id = $1 AND u.kategorija_id = (SELECT kategorija_id FROM usluga WHERE id = $2)`
 
 	var brojRezervacija int
-	err := db.QueryRow(query, stavka.RezervacijaID, stavka.UslugaID).Scan(&brojRezervacija)
+	err = db.QueryRow(query, stavka.RezervacijaID, usluga_id).Scan(&brojRezervacija)
 	if err != nil {
 		return err
 	}
@@ -270,7 +308,7 @@ func applyDiscountToStavka(db *sql.DB, stavka models.StavkaRezervacije) error {
 	}
 
 	return nil
-}
+}*/
 
 func earlyBird(termin time.Time) bool {
 	earlyBirdDatum := time.Date(2023, time.October, 2, 0, 0, 0, 0, time.UTC)

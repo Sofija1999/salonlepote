@@ -3,7 +3,7 @@ package models
 type Kupac struct {
 	Ime           string `json:"ime"`
 	Prezime       string `json:"prezime"`
-	Kompanija     string `json:"kompanija"`
+	Kompanija     string `json:"kompanija,omitempty"`
 	Adresa1       string `json:"adresa1"`
 	Adresa2       string `json:"adresa2,omitempty"`
 	PostanskiBroj string `json:"postanski_broj"`
@@ -19,11 +19,10 @@ type KupacResponse struct {
 }
 
 type StavkaRezervacije struct {
-	ID            int64  `json:"id"`
-	RezervacijaID int64  `json:"rezervacija_id"`
-	UslugaID      int    `json:"usluga_id"`
-	UslugaNaziv   string `json:"usluga_naziv"`
-	Cena          int64  `json:"cena"`
+	//ID            int64  `json:"id"`
+	//RezervacijaID int64  `json:"rezervacija_id"`
+	UslugaNaziv string `json:"usluga_naziv"`
+	Cena        int64  `json:"cena"`
 }
 
 type ReservationRequest struct {

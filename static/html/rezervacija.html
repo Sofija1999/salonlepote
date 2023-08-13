@@ -9,7 +9,7 @@
 <body>
     <h1>Rezervacija termina</h1>
     <h2>Podaci o kupcu</h2>
-    <form>
+    <form id="reservation_form">
         <label for="ime">Ime:</label>
         <input type="text" id="ime" name="ime" required>
 
@@ -54,20 +54,22 @@
             <div class="usluga-row">
                 <label for="usluga-select-1">Usluga 1:</label>
                 <select id="usluga-select-1" class="usluga-select" onchange="updateCena(this.id )">
-                    <option value="0" data-cena="0">Izaberite uslugu</option>
-                    <option value="450" data-cena="450">Sisanje kratke kose</option>
-                    <option value="600" data-cena="600">Sisanje srednje kose</option>
-                    <option value="800" data-cena="800">Sisanje duge kose</option>
-                    <option value="1500" data-cena="1500">Manikir</option>
-                    <option value="2000" data-cena="2000">Pedikir</option>
-                    <option value="2500" data-cena="2500">Masaza sportska</option>
-                    <option value="3000" data-cena="3000">Masaza relax</option>
+                    <option value="0" data-cena="0" >Izaberite uslugu</option>
+                    <option value="450" data-cena="450" >Sisanje kratke kose</option>
+                    <option value="600" data-cena="600" >Sisanje srednje kose</option>
+                    <option value="800" data-cena="800" >Sisanje duge kose</option>
+                    <option value="1500" data-cena="1500" >Manikir</option>
+                    <option value="2000" data-cena="2000" >Pedikir</option>
+                    <option value="2500" data-cena="2500" >Masaza sportska</option>
+                    <option value="3000" data-cena="3000" >Masaza relax</option>
                 </select>
                 <span class="cena-span">Cena: <span class="prikazanaCena-1">0</span> dinara</span> 
             </div>
         </div>
         <button type="button" onclick="dodajUslugu()">Dodaj uslugu</button>
-        <button onclick="submitReservation()">Potvrdi rezervaciju</button>
+        <input type="submit" value="Rezerviši">
+
+
     </form>
 
 
@@ -150,6 +152,7 @@
                 // Nakon dodavanja, ažurirajte ukupnu cenu
                 azurirajUkupnuCenu();
             }
+
 
             function dodajUslugu() {
                 let brojUsluga = $("#brUsluge").val(); // find by element id and get its value
@@ -258,6 +261,106 @@
         $(".usluga-select").change(function() {
             azurirajUkupnuCenu();
         });
+
+
+        $('#reservation_form').submit(function (e) {
+            e.preventDefault()
+
+            console.log("ovde udje u submit fju")
+    // Sakupljanje podataka sa forme
+    var ime = document.getElementById("ime").value;
+    var prezime = document.getElementById("prezime").value;
+    var kompanija = document.getElementById("kompanija").value;
+    var adresa1 = document.getElementById("adresa1").value;
+    var adresa2 = document.getElementById("adresa2").value;
+    var postanskiBroj = document.getElementById("postanskiBroj").value;
+    var mesto = document.getElementById("mesto").value;
+    var drzava = document.getElementById("drzava").value;
+    var email = document.getElementById("email").value;
+    var potvrdaEmaila = document.getElementById("potvrdaEmaila").value;
+    var termin = document.getElementById("termin").value;
+    var promokod = document.getElementById("promokod").val
+
+    // Sakupljanje usluga i cena
+    var usluge = [];
+    var cenaUsluga = 0;
+
+    var uslugeSelects = document.querySelectorAll(".usluga-select");
+    console.log(uslugeSelects)
+    uslugeSelects.forEach(function(select) {
+        var selectedValue = select.value;
+        console.log(selectedValue)
+        var cena = parseFloat(select.options[select.selectedIndex].getAttribute("data-cena"));
+        console.log(cena)
+        if (selectedValue !== "0") {
+            console.log("usao u if uslov")
+            usluge.push({
+                Usluga_naziv: select.options[select.selectedIndex].text,
+                Cena: cena
+            });
+            cenaUsluga += cena;
+        }
+    });
+
+
+    var reservationData = {
+        Kupac: {
+            Ime: ime,
+            Prezime: prezime,
+            Kompanija: kompanija,
+            Adresa1: adresa1,
+            Adresa2: adresa2,
+            Postanski_broj: postanskiBroj,
+            Mesto: mesto,
+            Drzava: drzava,
+            Email: email,
+            Potvrda_email: potvrdaEmaila
+        },
+        Termin: termin,
+        Cena: cenaUsluga,
+        Promokod: promokod,
+        Stavke_rezervacije: usluge,
+    };
+
+// Sada možete koristiti reservationData objekat za slanje na server putem AJAX-a
+console.log(reservationData); // Ispisivanje podataka u konzolu (radi provere)
+
+    // Slanje AJAX zahteva na server
+   /*fetch("/api/newreservation", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(reservationData)
+    })
+    .then(response => response.json())
+    .then(result => {
+        console.log(result);
+        alert("Rezervacija uspešno napravljena.");
+    })
+    .catch(error => {
+        console.error("Greška pri pravljenju rezervacije:", error);
+        alert("Došlo je do greške prilikom pravljenja rezervacije.");
+    });*/
+
+    // Slanje AJAX zahteva na server
+   $.ajax({
+        type: "POST",
+        url: "http://localhost:8080/api/newreservation",
+        data: JSON.stringify(reservationData),
+        dataType: "json",
+        contentType: "application/json",
+        success: function (data, text) {
+                        console.log(data)
+                        alert(data)
+                    },
+                    error: function (request, status, error) {
+                        alert(request.responseText);
+                    }
+    });
+});
+
+
 
     </script>
 </body>
