@@ -118,10 +118,10 @@ func insertReservation(customerID int64, reservation models.ReservationRequest) 
 	defer db.Close()
 
 	///Check time for reservation////
-	/*isFree, err := checkOverlap(db, reservation.UslugaID, reservation.Termin)
+	isFree, err := checkOverlapWithTotalDuration(db, reservation.StavkeRezervacije, reservation.Termin)
 	if isFree == false {
 		log.Fatalf("Vec postoji rezervacija u ovom terminu, probajte neki drugi termin!")
-	}*/
+	}
 	//////
 
 	/////Check early bird
@@ -359,8 +359,75 @@ func parseDurationString(durationStr string) (time.Duration, error) {
 	return duration, nil
 }
 
-func checkOverlap(db *sql.DB, uslugaID int64, termin string) (bool, error) {
-	// Izvuci trajanje usluge iz baze
+func checkOverlapWithTotalDuration(db *sql.DB, stavkeRezervacije []models.StavkaRezervacije, termin string) (bool, error) {
+	// Izračunaj ukupno trajanje svih usluga u rezervaciji
+	totalDuration, err := calculateTotalDurationFromStavke(db, stavkeRezervacije)
+	fmt.Println(totalDuration)
+
+	// Parsiraj termin iz stringa u time.Time
+	terminStr, err := time.Parse("2006-01-02T15:04", termin)
+	if err != nil {
+		return false, err
+	}
+
+	// Izračunaj vreme završetka nove rezervacije
+	vremeZavrsetka := terminStr.Add(totalDuration)
+	fmt.Println(vremeZavrsetka)
+
+	//provera radno vreme
+	workEnd, _ := time.Parse("15:04:05", "18:00:00")
+
+	if vremeZavrsetka.Hour() > workEnd.Hour() {
+		fmt.Println(vremeZavrsetka)
+		fmt.Println(workEnd)
+		return false, nil
+	}
+
+	query := `SELECT COUNT(*)
+			FROM rezervacija
+			WHERE vreme BETWEEN $1 AND $2`
+
+	var brojPreklapanja int
+	err = db.QueryRow(query, terminStr, vremeZavrsetka).Scan(&brojPreklapanja)
+	fmt.Println(brojPreklapanja)
+	if err != nil {
+		return false, err
+	}
+
+	if brojPreklapanja != 0 {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func calculateTotalDurationFromStavke(db *sql.DB, stavke []models.StavkaRezervacije) (time.Duration, error) {
+	totalDuration := time.Duration(0)
+
+	for _, stavka := range stavke {
+		// Dobiti trajanje usluge za datu stavku
+		var trajanjeStr string
+		query := "SELECT trajanje FROM usluga WHERE naziv = $1"
+		err := db.QueryRow(query, stavka.UslugaNaziv).Scan(&trajanjeStr)
+		if err != nil {
+			return 0, err
+		}
+
+		// Pretvoriti trajanje iz stringa u vreme
+		splitTrajanje := strings.Split(trajanjeStr, ":")
+		sati, _ := strconv.Atoi(splitTrajanje[0])
+		minuti, _ := strconv.Atoi(splitTrajanje[1])
+		sekunde, _ := strconv.Atoi(splitTrajanje[2])
+
+		trajanje := time.Duration(sati)*time.Hour + time.Duration(minuti)*time.Minute + time.Duration(sekunde)*time.Second
+		totalDuration += trajanje
+	}
+
+	return totalDuration, nil
+}
+
+/*func checkOverlap(db *sql.DB, uslugaID int64, termin string) (bool, error) {
+	//izvlacim iz baze koliko traje usluga
 	var trajanjeStr string
 	query := "SELECT trajanje FROM usluga WHERE id = $1"
 	err := db.QueryRow(query, termin).Scan(&trajanjeStr)
@@ -404,7 +471,7 @@ func checkOverlap(db *sql.DB, uslugaID int64, termin string) (bool, error) {
 	fmt.Println(brojPreklapanja)
 	// Ako ima preklapanja, rezervacija se ne može napraviti
 	return brojPreklapanja == 0, nil
-}
+}*/
 
 // ///brisanje rezervacije i njenih stavki ///////////////
 func DeleteReservation(w http.ResponseWriter, r *http.Request) {
