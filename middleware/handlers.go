@@ -14,6 +14,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -612,4 +613,120 @@ func getReservation(token, email string) (models.GetReservationResponse, error) 
 
 	fmt.Println("kraj getRes")
 	return reservation, nil
+}
+
+/////delete stavka rezervacije
+
+// Funkcija za brisanje stavke iz rezervacije na osnovu uslugaID
+func DeleteStavka(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	uslugaID := vars["uslugaID"]
+	fmt.Println("usao u delete stavka")
+
+	// Dohvati ID rezervacije na osnovu uslugaID
+	reservationID, err := getReservationIDByUslugaID(uslugaID)
+	if err != nil {
+		fmt.Println("eror2")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Pozovi funkciju za brisanje stavke
+	err = deleteStavkaByID(uslugaID)
+	if err != nil {
+		fmt.Println("erorr!!!!")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Ažuriraj ukupnu cenu rezervacije
+	err = updateUkupnaCena(reservationID)
+	if err != nil {
+		fmt.Println("eror3")
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(`{"message": "Stavka je uspešno obrisana iz rezervacije."}`))
+}
+
+// Funkcija za brisanje stavke po uslugaID
+func deleteStavkaByID(uslugaID string) error {
+	db := createConnection()
+	defer db.Close()
+	fmt.Println("usao u delete stavka by id")
+
+	// SQL upit za brisanje stavke po uslugaID
+	sqlStatement := `
+        DELETE FROM stavka_rezervacije
+        WHERE id = $1`
+
+	// Izvrši SQL upit za brisanje stavke
+	_, err := db.Exec(sqlStatement, uslugaID)
+	if err != nil {
+		fmt.Println("error 1")
+		return err
+	}
+
+	return nil
+}
+
+// Funkcija za dohvatanje ID rezervacije na osnovu uslugaID
+func getReservationIDByUslugaID(uslugaID string) (int64, error) {
+	db := createConnection()
+	defer db.Close()
+
+	var rezervacijaID int64
+
+	// SQL upit za dohvatanje ID rezervacije na osnovu uslugaID
+	sqlStatement := `
+        SELECT rezervacija_id FROM stavka_rezervacije
+        WHERE id = $1`
+	fmt.Println(uslugaID)
+
+	// Izvrši SQL upit za dohvatanje ID rezervacije
+	row := db.QueryRow(sqlStatement, uslugaID)
+	err := row.Scan(&rezervacijaID)
+	fmt.Println(rezervacijaID)
+	if err != nil {
+		fmt.Println("eror u get res id by usluga")
+		return 0, err
+	}
+
+	return rezervacijaID, nil
+}
+
+// Ažuriraj ukupnu cenu rezervacije
+func updateUkupnaCena(reservationID int64) error {
+	db := createConnection()
+	defer db.Close()
+
+	var novaUkupnaCena int64
+
+	// SQL upit za dohvatanje nove ukupne cene rezervacije na osnovu ID rezervacije
+	sqlStatement := `
+        SELECT COALESCE(SUM(cena), 0) FROM stavka_rezervacije
+        WHERE rezervacija_id = $1`
+
+	// Izvrši SQL upit za dohvatanje nove ukupne cene
+	row := db.QueryRow(sqlStatement, reservationID)
+	err := row.Scan(&novaUkupnaCena)
+	if err != nil {
+		fmt.Println("eror u ukupna cena")
+		return err
+	}
+
+	// Ažuriraj ukupnu cenu rezervacije u bazi
+	updateStatement := `
+        UPDATE rezervacija SET ukupna_cena = $1 WHERE id = $2`
+
+	_, err = db.Exec(updateStatement, novaUkupnaCena, reservationID)
+	if err != nil {
+		fmt.Println("eror ukupna cena 2")
+		return err
+	}
+
+	return nil
 }

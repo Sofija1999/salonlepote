@@ -11,7 +11,7 @@
     <h2>Podaci o kupcu</h2>
     <form id="reservation_form">
         <label for="ime">Ime:</label>
-        <input type="text" id="ime" name="ime" required>
+        <input type="text" id="ime" required class="required-input" required>
 
         <label for="prezime">Prezime:</label>
         <input type="text" id="prezime" name="prezime" required>
@@ -105,7 +105,6 @@
     <div id="rezervacijeContainer">
 
 </form>
-    <!-- Ovde će se prikazivati rezultati pretrage -->
 </div>
 
 
@@ -179,35 +178,6 @@
                 
             }
 
-// function dodajUslugu() {
-//     let brojUsluga = 1; // Deklaracija broja usluga unutar funkcije
-
-//     const uslugeContainer = document.getElementById('usluge-container');
-            
-//             const novaUslugaDiv = document.createElement('div');
-//             novaUslugaDiv.classList.add('usluga-row');
-//             novaUslugaDiv.id = `usluga-${brojUsluga}`;
-            
-//             novaUslugaDiv.innerHTML = `
-//                 <label for="usluga-select-${brojUsluga}">Usluga ${brojUsluga + 1}:</label>
-//                 <select id="usluga-select-${brojUsluga}" class="usluga-select" onchange="updateCena(this)">
-//                     <option value="0" data-cena="0">Izaberite uslugu</option>
-//                     <option value="450" data-cena="450">Sisanje kratke kose</option>
-//                     <option value="600" data-cena="600">Sisanje srednje kose</option>
-//                     <option value="800" data-cena="800">Sisanje duge kose</option>
-//                     <option value="1500" data-cena="1500">Manikir</option>
-//                     <option value="2000" data-cena="2000">Pedikir</option>
-//                     <option value="2500" data-cena="2500">Masaza sportska</option>
-//                     <option value="3000" data-cena="3000">Masaza relax</option>
-//                 </select>
-//                 <span class="cena-span">Cena: <span class="prikazanaCena-${brojUsluga}">0</span> dinara</span>
-//             `;
-            
-//             uslugeContainer.appendChild(novaUslugaDiv);
-//             updateCena(document.getElementById(`usluga-select-${brojUsluga}`));
-            
-//             brojUsluga++; // Povećaj broj usluga za buduće ID vrednosti
-//         }
 
         function pretraziRezervacije() {
             const token = $('#pretragaToken').val();
@@ -233,6 +203,8 @@
                     rezultatHtml += `<td>${usluga.id}</td>`;
                     rezultatHtml += `<td>${usluga.usluga_naziv}</td>`;
                     rezultatHtml += `<td>${usluga.cena} dinara</td>`;
+                     // Dodajemo dugme za brisanje sa odgovarajućim atributima za identifikaciju usluge
+                     rezultatHtml += `<td><button class="btn-delete-stavka" data-usluga-id="${usluga.id}">Obriši</button></td>`;
                     rezultatHtml += `</tr>`;
                 });
 
@@ -247,6 +219,33 @@
             });
         }
 
+        // Dodajte event listener na body (ili na odgovarajući roditeljski element)
+        document.body.addEventListener('click', function (event) {
+        if (event.target.classList.contains('obrisi-uslugu')) {
+        const uslugaId = event.target.dataset.uslugaId;
+        obrisiUslugu(uslugaId); // Poziv funkcije za brisanje usluge
+        }
+        });
+
+        $(document).on('click', '.btn-delete-stavka', function(event) {
+        event.preventDefault(); // Sprečava podrazumevano ponašanje dugmeta
+        const uslugaId = $(this).data('usluga-id');
+
+        $.ajax({
+        type: "DELETE",
+        url: `http://localhost:8080/api/deletestavka/${uslugaId}`,
+        dataType: "json",
+        contentType: "application/json",
+        success: function(data, text) {
+            console.log(data);
+            // Osvježite prikaz ili pretragu rezervacija nakon brisanja stavke
+        },
+        error: function(request, status, error) {
+            alert(request.responseText);
+        }
+    });
+});
+
         // Funkcija za ažuriranje ukupne cene
         function azurirajUkupnuCenu() {
             ukupnaCena = 0;
@@ -257,7 +256,7 @@
         $("#ukupnaCena").text(ukupnaCena);
         }
 
-        // Povežite funkciju sa promenama u selektovanim uslugama
+        //povezivanje funkcije sa promenama u uslugama
         $(".usluga-select").change(function() {
             azurirajUkupnuCenu();
         });
@@ -266,7 +265,6 @@
         $('#reservation_form').submit(function (e) {
             e.preventDefault()
 
-            console.log("ovde udje u submit fju")
     // Sakupljanje podataka sa forme
     var ime = document.getElementById("ime").value;
     var prezime = document.getElementById("prezime").value;
@@ -281,11 +279,44 @@
     var termin = document.getElementById("termin").value;
     var promokod = document.getElementById("promokod").val
 
+     //provera da li su sva polja koja su obavezna popunjena
+     if (!ime || !prezime || !adresa1 || !postanskiBroj || !mesto || !drzava || !email || !potvrdaEmaila || !termin) {
+        alert("Molimo vas da popunite sva obavezna polja.");
+        return; 
+    }
+
+    //provera da li se polja email i potvrdaEmaila podudaraju
+    if (email !== potvrdaEmaila) {
+        alert("Polja za email i potvrdu emaila se ne podudaraju.");
+        return; 
+    }
+
+    //provera za vreme, da li je termin u radnom vremenu od 9-18
+    var terminDate = new Date(termin);
+    //postavljanje vremena za početak i kraj radnog vremena (9 ujutru i 6 uveče)
+    var pocetakRadnogVremena = new Date(terminDate);
+    pocetakRadnogVremena.setHours(9, 0, 0, 0);
+    var krajRadnogVremena = new Date(terminDate);
+    krajRadnogVremena.setHours(18, 0, 0, 0);
+
+    // Provera da li je termin u dobrom opsegu
+    if (terminDate >= pocetakRadnogVremena && terminDate <= krajRadnogVremena) {
+    // Termin je unutar radnog vremena
+    console.log("Termin je u dobrom opsegu.");
+    } else {
+    // Termin nije u radnom vremenu
+    console.log("Termin nije u dobrom opsegu.");
+    alert("Uneti termin nije u okviru radnog vremena, molim vas nase radno vreme je od 09:00-18:00")
+    return
+    }
+
     // Sakupljanje usluga i cena
     var usluge = [];
     var cenaUsluga = 0;
 
     var uslugeSelects = document.querySelectorAll(".usluga-select");
+    var selectedUslugeCount = 0; // za brojanje usluga
+
     console.log(uslugeSelects)
     uslugeSelects.forEach(function(select) {
         var selectedValue = select.value;
@@ -293,7 +324,7 @@
         var cena = parseFloat(select.options[select.selectedIndex].getAttribute("data-cena"));
         console.log(cena)
         if (selectedValue !== "0") {
-            console.log("usao u if uslov")
+            selectedUslugeCount++; //brojim usluge
             usluge.push({
                 Usluga_naziv: select.options[select.selectedIndex].text,
                 Cena: cena
@@ -302,6 +333,11 @@
         }
     });
 
+    //provera da li postoji uneta barem jedna usluga na formi
+    if (selectedUslugeCount === 0) {
+    alert("Molimo vas da izaberete barem jednu uslugu.");
+    return; 
+    }
 
     var reservationData = {
         Kupac: {
@@ -322,26 +358,8 @@
         Stavke_rezervacije: usluge,
     };
 
-// Sada možete koristiti reservationData objekat za slanje na server putem AJAX-a
-console.log(reservationData); // Ispisivanje podataka u konzolu (radi provere)
-
-    // Slanje AJAX zahteva na server
-   /*fetch("/api/newreservation", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify(reservationData)
-    })
-    .then(response => response.json())
-    .then(result => {
-        console.log(result);
-        alert("Rezervacija uspešno napravljena.");
-    })
-    .catch(error => {
-        console.error("Greška pri pravljenju rezervacije:", error);
-        alert("Došlo je do greške prilikom pravljenja rezervacije.");
-    });*/
+    // Sada možete koristiti reservationData objekat za slanje na server putem AJAX-a
+    console.log(reservationData); 
 
     // Slanje AJAX zahteva na server
    $.ajax({
