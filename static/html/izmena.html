@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Izmena rezervacije</title>
+    <link rel="stylesheet" href="../css/stules_izmena.css">
+</head>
+<body>
+    <header>
+        <h1>Izmena rezervacije</h1>
+        <a href="index.html">Povratak na početnu stranicu</a>
+    </header>
+    <form id="pretragaForma">        
+        <h2>Izmeni rezervaciju</h2>
+        <p>Ukoliko želite da izmenite rezervaciju, molimo vas unesite token rezervacije i vaš e-mail.</p>
+
+        <label for="pretragaToken">Unesite token rezervacije:</label>
+        <input type="text" id="pretragaToken" name="token" required>
+
+        <label for="pretragaEmail">Unesite email:</label>
+        <input type="email" id="pretragaEmail" name="email" required>
+
+        <button type="button" onclick="pretraziRezervacije()">Pretraga</button>
+        <div id="rezervacijeContainer"></div>
+    </form>
+</body>
+</html>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+<script>
+
+    function pretraziRezervacije() {
+            const token = $('#pretragaToken').val();
+            const email = $('#pretragaEmail').val();
+
+            fetch(`http://localhost:8080/api/reservation?token=${token}&email=${email}`)
+            .then(response => response.json())
+            .then(data => {
+                const rezervacijeContainer = document.getElementById('rezervacijeContainer');
+                let rezultatHtml = '';
+
+                // Prikazujemo broj rezervacije i ukupnu cenu
+                rezultatHtml += `<p>Broj rezervacije: ${data.id}</p>`;
+                rezultatHtml += `<p>Ukupna cena: ${data.ukupna_cena} dinara</p>`;
+
+                // Kreiramo tabelu za prikaz usluga
+                rezultatHtml += '<table>';
+                rezultatHtml += '<tr><th>Usluga ID</th><th>Naziv usluge</th><th>Cena usluge</th></tr>';
+
+                // Iteriramo kroz usluge rezervacije i dodajemo ih u tabelu
+                data.stavke_rezervacije.forEach((usluga) => {
+                    rezultatHtml += `<tr id="usluga-${usluga.id}">`;
+                    rezultatHtml += `<td>${usluga.id}</td>`;
+                    rezultatHtml += `<td>${usluga.usluga_naziv}</td>`;
+                    rezultatHtml += `<td>${usluga.cena} dinara</td>`;
+                     // Dodajemo dugme za brisanje sa odgovarajućim atributima za identifikaciju usluge
+                     rezultatHtml += `<td><button class="btn-delete-stavka" data-usluga-id="${usluga.id}">Obriši</button></td>`;
+                    rezultatHtml += `</tr>`;
+                });
+
+
+                rezultatHtml += '</table>';
+
+                // Postavljamo generisani HTML u container
+                rezervacijeContainer.innerHTML = rezultatHtml;
+
+                // Dodajemo blok za biranje usluga i dodavanje usluge ispod tabele
+        const uslugeContainer = document.createElement('div');
+        uslugeContainer.id = 'usluge-container';
+        uslugeContainer.innerHTML = `
+            <input id="brUsluge" type="hidden" value="1" />
+            <div class="usluga-row">
+                <label for="usluga-select">Usluga:</label>
+                <select id="usluga-select" class="usluga-select" onchange="updateCena()">
+                    <option value="0" data-cena="0">Izaberite uslugu</option>
+                    <option value="450" data-cena="450">Sisanje kratka kosa</option>
+                    <option value="600" data-cena="600">Sisanje srednja kosa</option>
+                    <option value="800" data-cena="800">Sisanje duga kosa</option>
+                    <option value="1500" data-cena="1500">Manikir</option>
+                    <option value="2000" data-cena="2000">Pedikir</option>
+                    <option value="2500" data-cena="2500">Masaza sportska</option>
+                    <option value="3000" data-cena="3000">Masaza relax</option>
+                </select>
+                <span class="cena-span">Cena: <span id="prikazanaCena">0</span> dinara</span> 
+            </div>
+            <button type="button" onclick="dodajUslugu()" id="btn-dodaj-uslugu" data-rezervacija-id="${data.id}">Dodaj uslugu</button>
+        `;
+
+        rezervacijeContainer.appendChild(uslugeContainer);
+
+                        // Postavljamo atribut rezervacijaID na dugme "Dodaj uslugu"
+                        const btnDodajUslugu = document.getElementById('btn-dodaj-uslugu');
+            btnDodajUslugu.dataset.rezervacijaId = data.id;
+
+            })
+            .catch(error => {
+                console.error('Došlo je do greške pri pretrazi rezervacija:', error);
+                // Ovde možete prikazati neku poruku o grešci korisniku
+            });
+        }
+
+        // Dodajte event listener na body (ili na odgovarajući roditeljski element)
+        document.body.addEventListener('click', function (event) {
+        if (event.target.classList.contains('obrisi-uslugu')) {
+        const uslugaId = event.target.dataset.uslugaId;
+        obrisiUslugu(uslugaId); // Poziv funkcije za brisanje usluge
+        }
+        });
+
+        $(document).on('click', '.btn-delete-stavka', function(event) {
+        event.preventDefault(); // Sprečava podrazumevano ponašanje dugmeta
+        const uslugaId = $(this).data('usluga-id');
+
+        $.ajax({
+        type: "DELETE",
+        url: `http://localhost:8080/api/deletestavka/${uslugaId}`,
+        dataType: "json",
+        contentType: "application/json",
+        success: function(data, text) {
+            console.log(data);
+            obrisiRedUSluzi(uslugaId);
+            // Osvježite prikaz ili pretragu rezervacija nakon brisanja stavke
+        },
+        error: function(request, status, error) {
+            alert(request.responseText);
+        }
+    });
+});
+
+function obrisiRedUSluzi(uslugaId) {
+    const red = document.getElementById(`usluga-${uslugaId}`);
+    if (red) {
+        red.remove();
+        console.log(`Red za uslugu sa ID ${uslugaId} je uspešno obrisan.`);
+    } else {
+        console.log(`Nije moguće pronaći red za uslugu sa ID ${uslugaId}.`);
+    }
+}
+
+function updateCena() {
+    const select = document.getElementById('usluga-select');
+    const selectedOption = select.options[select.selectedIndex];
+    const cenaSpan = document.getElementById('prikazanaCena');
+    
+    if (selectedOption) {
+        const cena = selectedOption.getAttribute('data-cena');
+        cenaSpan.textContent = cena;
+    } else {
+        cenaSpan.textContent = '0';
+    }
+}
+
+function dodajUslugu() {
+    const select = document.getElementById('usluga-select');
+    console.log(select)
+    const selectedOption = select.options[select.selectedIndex];
+    console.log(selectedOption)
+
+    const btnDodajUslugu = document.querySelector('#btn-dodaj-uslugu');
+    const rezervacijaId = parseInt(btnDodajUslugu.dataset.rezervacijaId);
+    console.log(rezervacijaId)
+  
+
+    if (selectedOption && rezervacijaId) {
+        const uslugaNaziv = selectedOption.text;
+        console.log(uslugaNaziv)
+        const cena = parseInt(selectedOption.getAttribute('data-cena'));
+        console.log(cena)
+
+        const novaUsluga = {
+        rezervacija_id: rezervacijaId,
+        usluga_naziv: uslugaNaziv,
+        cena: cena
+    };
+
+    console.log(novaUsluga)
+
+    $.ajax({
+    url: 'http://localhost:8080/api/newstavka',
+    type: 'POST',
+    data: JSON.stringify(novaUsluga),
+    dataType: "json",
+    contentType: 'application/json',
+    success: function(data) {
+         // Nakon uspešnog dodavanja u bazu, ažurirajte prikaz na ekranu
+    const uslugeContainer = document.getElementById('usluge-container'); // Promenjeno ime promenljive
+    console.log(uslugeContainer)
+    const novaUslugaRed = `
+        <tr id="usluga-${data.id}">
+            <td>${data.id}</td>
+            <td>${data.usluga_naziv}</td>
+            <td>${data.cena} dinara</td>
+            <td><button class="btn-delete-stavka" data-usluga-id="${data.id}">Obriši</button></td>
+        </tr>
+    `;
+    console.log(novaUslugaRed)
+    const tabela = document.querySelector('#rezervacijeContainer table'); // Pravilno odaberite selektor tabele
+    if (tabela) { // Promenjeno ime promenljive
+        tabela.insertAdjacentHTML('beforeend', novaUslugaRed);
+    } else {
+        console.error("Element 'uslugeContainer' nije pronađen."); // Ispravljeno ime elementa
+    }
+
+    // Resetujte formu za unos usluge
+    select.value = '0';
+    updateCena();
+
+    // Prikažite poruku korisniku
+    const termin = data.termin; // Pretpostavka da imate funkciju za dohvat termina
+    alert(`Uspešno ste dodali uslugu '${data.usluga_naziv}' u rezervaciju sa terminom '${termin}'.`);
+},
+    error: function(error) {
+        console.error('Greška pri dodavanju usluge:', error);
+        // Ovde možete prikazati poruku korisniku o grešci
+    }
+
+}) ; 
+}
+}
+
+</script>

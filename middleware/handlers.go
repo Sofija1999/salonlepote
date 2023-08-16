@@ -179,7 +179,7 @@ func insertReservation(customerID int64, reservation models.ReservationRequest) 
 	// Dodajemo stavke rezervacije u bazu
 	for _, stavka := range reservation.StavkeRezervacije {
 		fmt.Println("usao u for petlju za stavke")
-		//applyDiscountToStavka(db, stavka)
+		applyDiscountToStavka(db, stavka, id)
 		insertStavkaRezervacije(id, stavka)
 	}
 
@@ -286,7 +286,7 @@ func applyDiscount(price int64) int64 {
 	return int64(float64(price) * 0.9)
 }
 
-/*func applyDiscountToStavka(db *sql.DB, stavka models.StavkaRezervacije) error {
+func applyDiscountToStavka(db *sql.DB, stavka models.StavkaRezervacije, id int64) error {
 	// Upit za prebrojavanje prethodnih rezervacija sa istim rezervacija_id i istom kategorijom usluge
 	usluga_id, err := getUslugaIDByNaziv(stavka.UslugaNaziv)
 	query := `
@@ -296,7 +296,7 @@ func applyDiscount(price int64) int64 {
 		WHERE r.rezervacija_id = $1 AND u.kategorija_id = (SELECT kategorija_id FROM usluga WHERE id = $2)`
 
 	var brojRezervacija int
-	err = db.QueryRow(query, stavka.RezervacijaID, usluga_id).Scan(&brojRezervacija)
+	err = db.QueryRow(query, id, usluga_id).Scan(&brojRezervacija)
 	if err != nil {
 		return err
 	}
@@ -309,7 +309,7 @@ func applyDiscount(price int64) int64 {
 	}
 
 	return nil
-}*/
+}
 
 func earlyBird(termin time.Time) bool {
 	earlyBirdDatum := time.Date(2023, time.October, 2, 0, 0, 0, 0, time.UTC)
@@ -796,4 +796,160 @@ func updateUkupnaCena(reservationID int64) error {
 	}
 
 	return nil
+}
+
+////Create stavka rezervacije
+
+func CreateStavka(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	w.Header().Set("Access-Control-Allow-Origin", "*")
+	w.Header().Set("Access-Control-Allow-Methods", "GET, OPTIONS")
+	w.Header().Set("Access-Control-Allow-Headers", "Content-Type")
+
+	var novaStavka models.StavkaRezervacijeInsert
+	fmt.Println("usao u create stavka")
+	fmt.Println(r.Body)
+
+	// Dekodiranje JSON zahteva
+	err := json.NewDecoder(r.Body).Decode(&novaStavka)
+	fmt.Println(r.Body)
+	if err != nil {
+		fmt.Println("greska u dekodiranju")
+		http.Error(w, "Greška pri dekodiranju JSON zahteva", http.StatusBadRequest)
+		return
+	}
+
+	fmt.Println("prosao dekodiranje")
+	fmt.Println(novaStavka.RezervacijaID)
+	fmt.Println(novaStavka.UslugaNaziv)
+	fmt.Println(novaStavka.Cena)
+	// Dohvatanje ID-a usluge na osnovu naziva usluge
+
+	uslugaID, err := getUslugaIDByNaziv(novaStavka.UslugaNaziv)
+	if err != nil {
+		fmt.Println("greska u get usluga id by naziv")
+		http.Error(w, "Greška pri dohvatanju ID-a usluge", http.StatusInternalServerError)
+		return
+	}
+
+	// Upisivanje nove stavke rezervacije u bazu
+	id, err := insertStavkaRezervacije2(novaStavka, uslugaID)
+	if err != nil {
+		fmt.Println("greska pri insertu stavke")
+		http.Error(w, "Greška pri upisivanju stavke rezervacije u bazu", http.StatusInternalServerError)
+		return
+	}
+
+	// Ažuriranje ukupne cene rezervacije
+	ukupnaCena, err := azurirajUkupnuCenuRezervacije(novaStavka.RezervacijaID, novaStavka.Cena)
+	if err != nil {
+		fmt.Println("greska pri azuriranju cene")
+		http.Error(w, "Greška pri ažuriranju ukupne cene rezervacije", http.StatusInternalServerError)
+		return
+	}
+
+	var odgovor models.StavkaRezervacijeInsertResponse
+
+	odgovor.UkupnaCena = ukupnaCena
+	odgovor.ID = id
+	odgovor.UslugaNaziv = novaStavka.UslugaNaziv
+	odgovor.Cena = novaStavka.Cena
+	odgovor.Termin, err = getTerminRezervacije(novaStavka.RezervacijaID)
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	json.NewEncoder(w).Encode(odgovor)
+
+}
+
+func insertStavkaRezervacije2(novaStavka models.StavkaRezervacijeInsert, uslugaID int64) (int64, error) {
+	db := createConnection()
+	defer db.Close()
+
+	// Priprema SQL upita za unos nove stavke rezervacije
+	sqlStatement := `
+		INSERT INTO stavka_rezervacije (rezervacija_id, usluga_id, usluga_naziv, cena)
+		VALUES ($1, $2, $3, $4) RETURNING id
+	`
+
+	var id int64 // Promenljiva za čuvanje rezultata
+
+	// Izvršavanje SQL upita i čuvanje rezultata
+	err := db.QueryRow(sqlStatement, novaStavka.RezervacijaID, uslugaID, novaStavka.UslugaNaziv, novaStavka.Cena).Scan(&id)
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+func azurirajUkupnuCenuRezervacije(rezervacijaID int64, novaCena int64) (int64, error) {
+	db := createConnection()
+	defer db.Close()
+
+	// Dohvatanje trenutne ukupne cene rezervacije
+	trenutnaUkupnaCena, err := getUkupnaCenaRezervacije(rezervacijaID)
+	if err != nil {
+		return 0, err
+	}
+
+	// Izračunavanje nove ukupne cene
+	novaUkupnaCena := trenutnaUkupnaCena + novaCena
+
+	// Priprema SQL upita za ažuriranje ukupne cene rezervacije
+	sqlStatement := `
+		UPDATE rezervacija
+		SET ukupna_cena = $1
+		WHERE id = $2
+	`
+
+	// Izvršavanje SQL upita za ažuriranje ukupne cene
+	_, err = db.Exec(sqlStatement, novaUkupnaCena, rezervacijaID)
+	if err != nil {
+		return 0, err
+	}
+
+	return novaUkupnaCena, nil
+}
+
+func getUkupnaCenaRezervacije(rezervacijaID int64) (int64, error) {
+	db := createConnection()
+	defer db.Close()
+
+	var ukupnaCena int64
+
+	// Priprema SQL upita za dohvatanje ukupne cene rezervacije
+	sqlStatement := `
+		SELECT ukupna_cena
+		FROM rezervacija
+		WHERE id = $1
+	`
+
+	// Izvršavanje SQL upita za dohvatanje ukupne cene
+	row := db.QueryRow(sqlStatement, rezervacijaID)
+	err := row.Scan(&ukupnaCena)
+	if err != nil {
+		return 0, err
+	}
+
+	return ukupnaCena, nil
+}
+
+// Funkcija za dohvat termina rezervacije na osnovu rezervacija ID
+func getTerminRezervacije(rezervacijaID int64) (time.Time, error) {
+	db := createConnection()
+	defer db.Close()
+
+	var vreme time.Time
+
+	query := "SELECT vreme FROM rezervacija WHERE id = $1"
+	err := db.QueryRow(query, rezervacijaID).Scan(&vreme)
+	fmt.Println(vreme)
+
+	if err != nil {
+		fmt.Println("Greška pri dohvatanju termina:", err)
+		return time.Time{}, err
+	}
+
+	return vreme, nil
 }

@@ -5,23 +5,72 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Osnovne informacije - Salon TRAC</title>
 <link rel="stylesheet" href="../css/styles.css">
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDjnKYNP6PPRKu_WrzrmU1-_gq6Mvr205I&callback=initMap" async defer></script>
 </head>
 <body>
-  <h1>Osnovne informacije</h1>
-  <p>Ime: Salon TRAC</p>
-  <p>Lokacija: <span id="location">Nepoznato</span></p>
-  <p>Radno vreme: 08:00 - 18:00</p>
-  <p>Dostupne usluge:</p>
-  <ul>
-    <li>Sisanje kratke kose</li>
-    <li>Sisanje srednje kose</li>
-    <li>Sisanje duge kose</li>
-    <li>Manikir</li>
-    <li>Pedikir</li>
-    <li>Masaza sportska</li>
-    <li>Masaza relax</li>
-  </ul>
-  <p>Dodatne informacije: ...</p>
-  <a href="rezervacija.html">Rezerviši termin</a>
+  <header>
+    <h1>Salon TRAC</h1>
+    <p class="radno-vreme">Radno vreme: 09:00 - 18:00</p>
+    <div class="dugmici">
+      <a href="rezervacija.html" class="btn-rezervacija">Rezerviši termin</a>
+      <a href="otkaz.html" class="btn-otkazivanje">Otkazi rezervaciju</a>
+      <a href="izmena.html" class="btn-izmena">Izmeni rezervaciju</a>
+    </div>
+  </header>
+  <section class="informacije">
+    <h2>Dobrodošli na sajt našeg salona Trač!</h2>
+    <p>Naše usluge:</p>
+  </section>
+  <section class="kategorije">
+    <div class="kartica">
+      <h3>Sisanje</h3>
+      <ul>
+        <li>Sisanje duge kose</li>
+        <li>Sisanje kratke kose</li>
+        <li>Sisanje srednje kose</li>
+      </ul>
+    </div>
+    <div class="kartica">
+      <h3>Nokti</h3>
+      <ul>
+        <li>Manikir</li>
+        <li>Pedikir</li>
+      </ul>
+    </div>
+    <div class="kartica">
+      <h3>Masaze</h3>
+      <ul>
+        <li>Masaza sportska</li>
+        <li>Masaza relax</li>
+      </ul>
+    </div>
+  </section>
+  <section class="lokacija">
+    <div id="map"></div>
+  </section>
+  <footer>
+    <p>Dodatne informacije: ...</p>
+
+  </footer>
 </body>
 </html>
+
+<script>
+  function initMap() {
+    // Postavite koordinate lokacije vašeg salona
+    var salonLocation = { lat: 44.815432, lng: 20.463410 };
+  
+    // Kreirajte mapu i postavite je na odgovarajuću lokaciju
+    var map = new google.maps.Map(document.getElementById('map'), {
+      center: salonLocation,
+      zoom: 15 // Podesite željeni nivo zumiranja
+    });
+  
+    // Dodajte marker na mapu
+    var marker = new google.maps.Marker({
+      position: salonLocation,
+      map: map,
+      title: 'Salon TRAC'
+    });
+  }
+  </script>

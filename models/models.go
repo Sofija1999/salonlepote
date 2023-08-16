@@ -1,5 +1,7 @@
 package models
 
+import "time"
+
 type Kupac struct {
 	Ime           string `json:"ime"`
 	Prezime       string `json:"prezime"`
@@ -66,8 +68,16 @@ type StavkaRezervacijeGet struct {
 	Cena        int64  `json:"cena"`
 }
 
-/*type DeleteStavkaRezervacije struct {
-	ID int64 `json:"id"`
-	Cena int64 `json:"cena"`
-	UkupnaCena int64 `json:"ukupna_cena"`
-}*/
+type StavkaRezervacijeInsert struct {
+	RezervacijaID int64  `json:"rezervacija_id"`
+	UslugaNaziv   string `json:"usluga_naziv"`
+	Cena          int64  `json:"cena"`
+}
+
+type StavkaRezervacijeInsertResponse struct {
+	ID    int64     `json:"id"`
+	UslugaNaziv string    `json:"usluga_naziv"`
+	Cena        int64     `json:"cena"`
+	UkupnaCena  int64     `json:"ukupna_cena"`
+	Termin      time.Time `json:"vreme"`
+}

@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Otkazivanje rezervacije</title>
+    <link rel="stylesheet" href="../css/styles_otkaz.css">
+</head>
+<body>
+    <header>
+        <h1>Otkazivanje rezervacije</h1>
+    </header>
+    
+    <nav>
+        <ul>
+            <li><a href="index.html">Pocetna</a></li>
+            <li><a href="rezervacija.html">Rezervacija</a></li>
+        </ul>
+    </nav>
+
+    <form id="otkazForma">
+        <section id="otkaziRezervaciju">
+            <h2>Otkazivanje rezervacije</h2>
+            <p>Ukoliko želite da otkazete rezervaciju, molimo vas unesite token rezervacije i vaš e-mail.</p>
+            
+            <label for="token">Token rezervacije:</label>
+            <input type="text" id="token" name="token" required>
+
+            <label for="emailOtkaz">Vaš e-mail:</label>
+            <input type="email" id="emailOtkaz" name="email" required>
+
+            <button type="submit">Otkaži rezervaciju</button>
+
+            <div id="rezultatPoruka"></div>
+        </section>
+    </form>
+
+    <footer>
+        <p>&copy; 2023 Salon TRAC. Sva prava zadržana.</p>
+    </footer>
+</body>
+</html>
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+
+    <script>
+            $('#otkazForma').submit(function (e) {
+                e.preventDefault();
+                let formData = $(this).serializeArray();
+                console.log(formData)
+                 let jsonData = {};
+                 console.log(jsonData)
+
+            $.each(formData, function(i, v) {
+                jsonData[v.name] = v.value;
+            });
+            console.log(jsonData)
+    
+                $.ajax({
+                    type: "DELETE",
+                    url: "http://localhost:8080/api/deletereservation",
+                    data: JSON.stringify(jsonData), 
+                    dataType: "json",
+                    contentType: "application/json",
+                    success: function (data, text) {
+                        console.log(data)
+                    },
+                    error: function (request, status, error) {
+                        console.log(request.responseText);
+                    }
+                });
+            });
+    </script>
