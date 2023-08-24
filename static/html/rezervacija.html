@@ -4,10 +4,28 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rezervacija termina - Salon TRAC</title>
-    <link rel="stylesheet" href="../css/styles_rezervacija.css">
+    <link rel="stylesheet" href="../css/s_rezervacija.css">
+    <link rel="stylesheet" href="../css/home.css">
+    <link rel="stylesheet" href="../css/mediastyle.css">
+    <link rel="stylesheet" href="../css/animation.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.15/dist/sweetalert2.min.css">
+
 </head>
 <body>
-    <h1>Rezervacija termina</h1>
+    <section id="header" class="header">
+        <nav class="nav">
+            <a href="#header"><img src="../images/logo.png" alt=""></a>
+            <div id="nav-links">
+                <ul>
+                    <li><a href="../html/index.html">HOME</a></li>
+                    <li><a href="../html/rezervacija.html">REZERVACIJA</a></li>
+                    <li><a href="../html/otkaz.html">OTKAZIVANJE</a></li>
+                    <li><a href="../html/izmena.html">IZMENA REZERVACIJE</a></li>
+                </ul>
+            </div>
+        </nav>
+    </section>
+    <h1 id="rez">Rezervacija termina</h1>
     <form id="reservation_form">
         <h2>Podaci o kupcu</h2>
 
@@ -56,9 +74,9 @@
                 <label for="usluga-select-1">Usluga 1:</label>
                 <select id="usluga-select-1" class="usluga-select" onchange="updateCena(this.id )">
                     <option value="0" data-cena="0" >Izaberite uslugu</option>
-                    <option value="450" data-cena="450" >Sisanje kratke kose</option>
-                    <option value="600" data-cena="600" >Sisanje srednje kose</option>
-                    <option value="800" data-cena="800" >Sisanje duge kose</option>
+                    <option value="450" data-cena="450" >Sisanje kratka kosa</option>
+                    <option value="600" data-cena="600" >Sisanje srednja kosa</option>
+                    <option value="800" data-cena="800" >Sisanje duga kosa</option>
                     <option value="1500" data-cena="1500" >Manikir</option>
                     <option value="2000" data-cena="2000" >Pedikir</option>
                     <option value="2500" data-cena="2500" >Masaza sportska</option>
@@ -110,8 +128,20 @@
 
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.15/dist/sweetalert2.all.min.js"></script>
 
     <script>
+
+      document.addEventListener('scroll', ()=>{
+            const nav=document.querySelector('nav');
+            if(window.scrollY > 15){
+                nav.classList.add('scrolled');
+            }else{
+                nav.classList.remove('scrolled');
+            }
+        });
+
+
             $('#otkazForma').submit(function (e) {
                 e.preventDefault();
                 let formData = $(this).serializeArray();
@@ -162,9 +192,9 @@
                                 <label for="usluga-select-${brojUsluga}">Usluga ${brojUsluga}:</label>
                                 <select id="usluga-select-${brojUsluga}" class="usluga-select" onchange="updateCena(this.id)">
                                     <option value="0" data-cena="0">Izaberite uslugu</option>
-                                    <option value="450" data-cena="450">Sisanje kratke kose</option>
-                                    <option value="600" data-cena="600">Sisanje srednje kose</option>
-                                    <option value="800" data-cena="800">Sisanje duge kose</option>
+                                    <option value="450" data-cena="450">Sisanje kratka kosa</option>
+                                    <option value="600" data-cena="600">Sisanje srednja kosa</option>
+                                    <option value="800" data-cena="800">Sisanje duga kosa</option>
                                     <option value="1500" data-cena="1500">Manikir</option>
                                     <option value="2000" data-cena="2000">Pedikir</option>
                                     <option value="2500" data-cena="2500">Masaza sportska</option>
@@ -278,7 +308,7 @@
     var email = document.getElementById("email").value;
     var potvrdaEmaila = document.getElementById("potvrdaEmaila").value;
     var termin = document.getElementById("termin").value;
-    var promokod = document.getElementById("promokod").val
+    var promokod = document.getElementById("promokod").value;
 
      //provera da li su sva polja koja su obavezna popunjena
      if (!ime || !prezime || !adresa1 || !postanskiBroj || !mesto || !drzava || !email || !potvrdaEmaila || !termin) {
@@ -287,11 +317,14 @@
     }
 
     //provera da li se polja email i potvrdaEmaila podudaraju
-    if (email !== potvrdaEmaila) {
-        alert("Polja za email i potvrdu emaila se ne podudaraju.");
-        return; 
+    if (email !== potvrdaEmaila) { 
+    Swal.fire({
+            title: "Greška!",
+            text: "Polja za email i potvrdaEmail se ne podudaraju.",
+            icon: "error",
+        });
+        return
     }
-
     //provera za vreme, da li je termin u radnom vremenu od 9-18
     var terminDate = new Date(termin);
     //postavljanje vremena za početak i kraj radnog vremena (9 ujutru i 6 uveče)
@@ -307,7 +340,11 @@
     } else {
     // Termin nije u radnom vremenu
     console.log("Termin nije u dobrom opsegu.");
-    alert("Uneti termin nije u okviru radnog vremena, molim vas nase radno vreme je od 09:00-18:00")
+    Swal.fire({
+            title: "Greška!",
+            text: "Uneti termin nije u opsegu radnog vremena. Radno vreme je od 09:00-18:00h",
+            icon: "error",
+        });
     return
     }
 
@@ -336,7 +373,11 @@
 
     //provera da li postoji uneta barem jedna usluga na formi
     if (selectedUslugeCount === 0) {
-    alert("Molimo vas da izaberete barem jednu uslugu.");
+        Swal.fire({
+            title: "Greška!",
+            text: "Molim vas da izaberete barem jednu uslugu.",
+            icon: "error",
+        });
     return; 
     }
 
@@ -355,7 +396,7 @@
         },
         Termin: termin,
         Cena: cenaUsluga,
-        Promokod: promokod,
+        Promo_kod: promokod,
         Stavke_rezervacije: usluge,
     };
 
@@ -370,11 +411,34 @@
         dataType: "json",
         contentType: "application/json",
         success: function (data, text) {
-                        console.log(data)
-                        alert(data)
+
+            if (data.error) {
+                Swal.fire({
+                    title: "Nespešno!",
+                    text: data.error, 
+                    icon: "error",
+                })
+            } else {
+                    const alertText = `Uspešno ste zakazali rezervaciju! 
+                    Vaš token ukoliko želite da otkažete ili izmenite rezervaciju: ${data.token}
+                    Vaš promo kod: ${data.promo_kod} Ukupna cena sa popustima iznosi: ${data.ukupna_cena}`;
+
+                    Swal.fire({
+                    title: "Uspešno!",
+                    text: alertText, 
+                    icon: "success",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                     // Osvežavanje stranice
+                    location.reload();
+            }
+        });
+    }
+    
                     },
                     error: function (request, status, error) {
-                        alert(request.responseText);
+                        console.error('Greška:', error);
+                        alert(data.error);
                     }
     });
 });

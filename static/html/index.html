@@ -3,74 +3,158 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Osnovne informacije - Salon TRAC</title>
+<title>Osnovne informacije - Salon TRAČ</title>
 <link rel="stylesheet" href="../css/styles.css">
-<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDjnKYNP6PPRKu_WrzrmU1-_gq6Mvr205I&callback=initMap" async defer></script>
+<link rel="stylesheet" href="../css/home.css">
+<link rel="stylesheet" href="../css/mediastyle.css">
+<link rel="stylesheet" href="../css/animation.css">
+<link rel="stylesheet" href="../css/footer.css">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+
 </head>
 <body>
-  <header>
-    <h1>Salon TRAC</h1>
-    <p class="radno-vreme">Radno vreme: 09:00 - 18:00</p>
-    <div class="dugmici">
-      <a href="rezervacija.html" class="btn-rezervacija">Rezerviši termin</a>
-      <a href="otkaz.html" class="btn-otkazivanje">Otkazi rezervaciju</a>
-      <a href="izmena.html" class="btn-izmena">Izmeni rezervaciju</a>
-    </div>
-  </header>
-  <section class="informacije">
-    <h2>Dobrodošli na sajt našeg salona Trač!</h2>
-    <p>Naše usluge:</p>
-  </section>
-  <section class="kategorije">
-    <div class="kartica">
-      <h3>Sisanje</h3>
-      <ul>
-        <li>Sisanje duge kose</li>
-        <li>Sisanje kratke kose</li>
-        <li>Sisanje srednje kose</li>
-      </ul>
-    </div>
-    <div class="kartica">
-      <h3>Nokti</h3>
-      <ul>
-        <li>Manikir</li>
-        <li>Pedikir</li>
-      </ul>
-    </div>
-    <div class="kartica">
-      <h3>Masaze</h3>
-      <ul>
-        <li>Masaza sportska</li>
-        <li>Masaza relax</li>
-      </ul>
-    </div>
-  </section>
-  <section class="lokacija">
-    <div id="map"></div>
-  </section>
-  <footer>
-    <p>Dodatne informacije: ...</p>
+  <section id="header" class="header">
+    <nav class="nav">
+        <a href="#header"><img src="../images/logo.png" alt=""></a>
+        <div id="nav-links">
+            <ul>
+              <li><a href="../html/index.html">HOME</a></li>
+              <li><a href="../html/rezervacija.html">REZERVACIJA</a></li>
+              <li><a href="../html/otkaz.html">OTKAZIVANJE</a></li>
+              <li><a href="../html/izmena.html">IZMENA REZERVACIJE</a></li>
+            </ul>
+        </div>
+    </nav>
+    <div id="pocetna">
+        <h1>SALON LEPOTE TRAČ</h1>
+        <h2>09:00-18:00</h2>
 
-  </footer>
-</body>
-</html>
+        <p>
+          Dobrodošli u Salon lepote Trač - spoj tradicije i modernosti. <br>
+          Sa dubokim korenima u vekovima lepote, nudimo luksuzno iskustvo 
+          tretmana za negu kože i masaža, prenoseći mudrost generacija u savremeni svet.<br> 
+          Postanite deo naše priče o očuvanju lepote i samopouzdanja kroz vreme.
+        </p>
+        <a href="../html/rezervacija.html">Rezerviši svoj termin</a>
+    </div>
+    <div class="center">
+      <div class="property-card">
+        <a href="#">
+          <div class="property-image prva">
+            <div class="property-image-title">
+              <!-- Optional <h5>Card Title</h5> If you want it, turn on the CSS also. -->
+            </div>
+          </div></a>
+        <div class="property-description">
+          <h5> Šišanje </h5>
+          <p><br> Šišanje kratka kosa <br> Šišanje srednja kosa <br> Šišanje duga kosa</p>
+        </div>
+        <a href="#">
+          <div class="property-social-icons">
+            <!-- I would usually put multipe divs inside here set to flex. Some people might use Ul li. Multiple Solutions -->
+          </div>
+        </a>
+      </div>
+      <div class="property-card">
+        <a href="#">
+          <div class="property-image druga">
+            <div class="property-image-title">
+              <!-- Optional <h5>Card Title</h5> If you want it, turn on the CSS also. -->
+            </div>
+          </div></a>
+        <div class="property-description">
+          <h5> Nokti </h5>
+          <p><br>Manikir <br> Pedikir</p>
+        </div>
+        <a href="#">
+          <div class="property-social-icons">
+            <!-- I would usually put multipe divs inside here set to flex. Some people might use Ul li. Multiple Solutions -->
+          </div>
+        </a>
+      </div>
+      <div class="property-card">
+        <a href="#">
+          <div class="property-image treca">
+            <div class="property-image-title">
+              <!-- Optional <h5>Card Title</h5> If you want it, turn on the CSS also. -->
+            </div>
+          </div></a>
+        <div class="property-description">
+          <h5> Masaže</h5>
+          <p><br>Masaža sportska <br>Masaža relax</p>
+        </div>
+        <a href="#">
+          <div class="property-social-icons">
+            <!-- I would usually put multipe divs inside here set to flex. Some people might use Ul li. Multiple Solutions -->
+          </div>
+        </a>
+      </div>
+    </div>
+</section>
+
+<!-- ------------------------Contact,About,Maps-------------- -->
+<section id="footer">
+  <div class="row">
+      <div class="cone">
+          <div id="img_logo">
+              <img src="../images/logo.png" width="60px" alt="">
+              <h2> Salon Lepote Trač</h2>
+          </div>
+          <p id="opis"> 
+            Naš salon lepote je oaza posvećena vašem blagostanju. 
+            Sa pažljivo odabranim masažama i frizerskim uslugama, nudimo holistički pristup nezi lepote. 
+            Vaša koža će zablistati, kosa dobiti novu dimenziju stila, a vi ćete se osećati osveženo i obnovljeno.
+          </p>
+          <div class="mreze">
+              <a href="https://www.facebook.com/sofija.dokmanovic/"><i class='fab fa-facebook'></i></a>
+              <a href="https://www.instagram.com/"><i class='fab fa-instagram'></i></a>
+              <a href="https://twitter.com/i/flow/login"><i class='fab fa-twitter'></i></a>
+              <a href="https://rs.linkedin.com/"><i class='fab fa-linkedin-in'></i></a>          
+          </div>
+      </div>
+      <div class="cone" id="quick_links">
+          <h4>Quick Links</h4>
+          <ul>
+              <li><a href="../html/rezervacija.html">Rezervacija</a></li>
+              <li><a href="../html/otkaz.html">Otkazivanje</a></li>
+              <li><a href="../html/izmena.html">Izmena rezervacije</a></li>
+          </ul>
+      </div>
+      <iframe src="https://maps.google.com/maps?width=600&amp;height=400&amp;hl=en&amp;q=beograd, uralska 16&amp;t=&amp;z=14&amp;ie=UTF8&amp;iwloc=B&amp;output=embed"  class="cone map" style="border:0;" allowfullscreen="" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+      
+  </div>
+  <div  class="row row2">
+      <div class="kutija kutija_contact">
+          <i class="material-icons">mail_outline</i>
+          <h3>Enquiries</h3>
+          <p id="contact">Contact Us</p>
+      </div>
+      <div class="kutija kutija_service">
+          <i class='fas fa-phone-alt'></i>
+          <h3>Suport Service</h3>
+          <p>+381 60 43 44 800</p>
+      </div>
+      <div class="kutija kutija_location">
+          <i class="material-icons">location_on</i>
+          <h3>Location</h3>
+          <p>Venture Centre, UWSP Science Park, Coventry</p>
+      </div>
+  </div>
+  <p id="copy_right">Copyright ©2023 Sofija Dokmanović. All Rights Reserved.</p>
+</section>
+  
 
 <script>
-  function initMap() {
-    // Postavite koordinate lokacije vašeg salona
-    var salonLocation = { lat: 44.815432, lng: 20.463410 };
-  
-    // Kreirajte mapu i postavite je na odgovarajuću lokaciju
-    var map = new google.maps.Map(document.getElementById('map'), {
-      center: salonLocation,
-      zoom: 15 // Podesite željeni nivo zumiranja
-    });
-  
-    // Dodajte marker na mapu
-    var marker = new google.maps.Marker({
-      position: salonLocation,
-      map: map,
-      title: 'Salon TRAC'
-    });
-  }
+        /*document.addEventListener('scroll', ()=>{
+            console.log(scrollY);
+            const nav=document.querySelector('nav');
+            if(window.scrollY > 15){
+                nav.classList.add('scrolled');
+            }else{
+                nav.classList.remove('scrolled');
+            }
+        });*/
   </script>

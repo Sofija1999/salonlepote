@@ -4,20 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Otkazivanje rezervacije</title>
-    <link rel="stylesheet" href="../css/styles_otkaz.css">
+    <link rel="stylesheet" href="../css/s_otkaz.css">
+    <link rel="stylesheet" href="../css/home.css">
+    <link rel="stylesheet" href="../css/mediastyle.css">
+    <link rel="stylesheet" href="../css/animation.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.15/dist/sweetalert2.min.css">
 </head>
 <body>
-    <header>
-        <h1>Otkazivanje rezervacije</h1>
-    </header>
+    <section id="header" class="header">
+        <nav class="nav">
+            <a href="#header"><img src="../images/logo.png" alt=""></a>
+            <div id="nav-links">
+                <ul>
+                    <li><a href="../html/index.html">HOME</a></li>
+                    <li><a href="../html/rezervacija.html">REZERVACIJA</a></li>
+                    <li><a href="../html/otkaz.html">OTKAZIVANJE</a></li>
+                    <li><a href="../html/izmena.html">IZMENA REZERVACIJE</a></li>
+                </ul>
+            </div>
+        </nav>
+    </section>
     
-    <nav>
-        <ul>
-            <li><a href="index.html">Pocetna</a></li>
-            <li><a href="rezervacija.html">Rezervacija</a></li>
-        </ul>
-    </nav>
-
     <form id="otkazForma">
         <section id="otkaziRezervaciju">
             <h2>Otkazivanje rezervacije</h2>
@@ -42,6 +49,8 @@
 </html>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.15/dist/sweetalert2.all.min.js"></script>
+
 
     <script>
             $('#otkazForma').submit(function (e) {
@@ -64,9 +73,28 @@
                     contentType: "application/json",
                     success: function (data, text) {
                         console.log(data)
+
+                        // Korišćenje SweetAlert za prikazivanje upozorenja
+                    Swal.fire({
+                    title: "Uspešno!",
+                    text: "Uspešno ste otkazali rezervaciju!", 
+                    icon: "success",
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                     // Osvežavanje stranice
+                    location.reload();
+            }
+        });
+       
                     },
                     error: function (request, status, error) {
-                        console.log(request.responseText);
+                        // Korišćenje SweetAlert za prikazivanje upozorenja
+        Swal.fire({
+            title: "Greška!",
+            text: "Došlo je do greške prilikom brisanja rezervacije. Proverite token ili email.",
+            icon: "error",
+        });
+
                     }
                 });
             });

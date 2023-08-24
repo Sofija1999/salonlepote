@@ -101,26 +101,58 @@ func CreateReservation(w http.ResponseWriter, r *http.Request) {
 	customerID := getOrCreateCustomer(reservation.Kupac)
 
 	// Zatim kreiramo rezervaciju sa dobijenim korisnikom
-	insertID := insertReservation(customerID, reservation)
+	insertID, promoKod, token, err, ukupnaCena := insertReservation(customerID, reservation)
+	if err != nil {
+		if err.Error() == "Promo kod je nevažeći ili već iskorišćen." {
+			res := models.ReservationResponse{
+				ID:       0, // Neuspešno kreiranje rezervacije, postavite željenu vrednost
+				Message:  "Reservation creation failed",
+				PromoKod: "",
+				Token:    "",
+				Error:    err.Error(), // Postavljanje poruke o grešci
+			}
+			json.NewEncoder(w).Encode(res)
+		}
+		if err.Error() == "rezervacija već postoji za ovaj termin" {
+			res := models.ReservationResponse{
+				ID:       0, // Neuspešno kreiranje rezervacije, postavite željenu vrednost
+				Message:  "Reservation creation failed",
+				PromoKod: "",
+				Token:    "",
+				Error:    err.Error(), // Postavljanje poruke o grešci
+			}
+			json.NewEncoder(w).Encode(res)
+		}
+
+		return
+	}
+
 	fmt.Println(insertID)
 
 	res := models.ReservationResponse{
-		ID:      insertID,
-		Message: "Reservation created successfully",
+		ID:         insertID,
+		Message:    "Reservation created successfully",
+		PromoKod:   promoKod,
+		Token:      token,
+		Error:      "", // Postavljanje inicijalne vrednosti za grešku
+		UkupnaCena: ukupnaCena,
 	}
 	fmt.Println(res)
 	json.NewEncoder(w).Encode(res)
 }
 
-func insertReservation(customerID int64, reservation models.ReservationRequest) int64 {
+func insertReservation(customerID int64, reservation models.ReservationRequest) (int64, string, string, error, int64) {
 	fmt.Println("usao u insert reservation")
 	db := createConnection()
 	defer db.Close()
 
 	///Check time for reservation////
 	isFree, err := checkOverlapWithTotalDuration(db, reservation.StavkeRezervacije, reservation.Termin)
-	if isFree == false {
-		log.Fatalf("Vec postoji rezervacija u ovom terminu, probajte neki drugi termin!")
+	if err != nil {
+		return 0, "", "", fmt.Errorf("greška prilikom provere preklapanja rezervacija: %v", err), 0
+	}
+	if !isFree {
+		return 0, "", "", fmt.Errorf("rezervacija već postoji za ovaj termin"), 0
 	}
 	//////
 
@@ -138,19 +170,24 @@ func insertReservation(customerID int64, reservation models.ReservationRequest) 
 	}
 	////
 
+	fmt.Println(reservation.PromoKod)
+
 	////Check promo kod
 	if reservation.PromoKod != "" {
+		fmt.Println("usao u proveru promo koda")
 		validPromo, err := checkPromoCodeWithDB(db, customerID, reservation.PromoKod)
 		if err != nil {
-			log.Fatalf("error promo kod %v", err)
+			//log.Fatalf("error promo kod %v", err)
 		}
 		if validPromo == true {
 			reservation.Cena = int64(float64(reservation.Cena) * 0.90)
 			fmt.Println("Dobili ste popust zbog promo koda")
 		} else {
-			log.Fatalf("Iskoriscen promo kod! %v", reservation.PromoKod)
+			fmt.Println("usao u else")
+			return 0, "", "", fmt.Errorf("Promo kod je nevažeći ili već iskorišćen."), 0
 		}
 	}
+
 	/////
 
 	promokod := generatePromoKod()
@@ -159,9 +196,10 @@ func insertReservation(customerID int64, reservation models.ReservationRequest) 
 	sqlStatement := `
 		INSERT INTO rezervacija(
 			vreme, promo_kod, token,ukupna_cena, kupac_id
-		) VALUES ($1, $2, $3, $4, $5) RETURNING id`
+		) VALUES ($1, $2, $3, $4, $5) RETURNING id, promo_kod, token, ukupna_cena`
 
 	var id int64
+	var ukupnaCena int64
 
 	// Simulacija trajanja rezervacije u minutima
 	//durationInMinutes := "2023-08-09 08:30:00"
@@ -169,7 +207,7 @@ func insertReservation(customerID int64, reservation models.ReservationRequest) 
 	err = db.QueryRow(
 		sqlStatement,
 		reservation.Termin, promokod, token, reservation.Cena, customerID,
-	).Scan(&id)
+	).Scan(&id, &promokod, &token, &ukupnaCena)
 
 	if err != nil {
 		log.Fatalf("Unable to execute the query %v", err)
@@ -183,7 +221,7 @@ func insertReservation(customerID int64, reservation models.ReservationRequest) 
 		insertStavkaRezervacije(id, stavka)
 	}
 
-	return id
+	return id, promokod, token, nil, ukupnaCena
 }
 
 func getUslugaIDByNaziv(naziv string) (int64, error) {
@@ -317,6 +355,7 @@ func earlyBird(termin time.Time) bool {
 }
 
 func checkPromoCodeWithDB(db *sql.DB, kupacID int64, promoKod string) (bool, error) {
+
 	var existingPromoCode string
 	err := db.QueryRow("SELECT promo_kod FROM rezervacija WHERE promo_kod = $1 AND kupac_id != $2 AND koristio_promo_kod = false", promoKod, kupacID).Scan(&existingPromoCode)
 	if err != nil {
@@ -395,6 +434,7 @@ func checkOverlapWithTotalDuration(db *sql.DB, stavkeRezervacije []models.Stavka
 	}
 
 	if brojPreklapanja != 0 {
+		fmt.Println("broj preklapanja veci od nule")
 		return false, nil
 	}
 
@@ -425,53 +465,6 @@ func calculateTotalDurationFromStavke(db *sql.DB, stavke []models.StavkaRezervac
 
 	return totalDuration, nil
 }
-
-/*func checkOverlap(db *sql.DB, uslugaID int64, termin string) (bool, error) {
-	//izvlacim iz baze koliko traje usluga
-	var trajanjeStr string
-	query := "SELECT trajanje FROM usluga WHERE id = $1"
-	err := db.QueryRow(query, termin).Scan(&trajanjeStr)
-	fmt.Println(trajanjeStr)
-	if err != nil {
-		return false, err
-	}
-
-	splitTrajanje := strings.Split(trajanjeStr, ":")
-	sati, _ := strconv.Atoi(splitTrajanje[0])
-	minuti, _ := strconv.Atoi(splitTrajanje[1])
-	sekunde, _ := strconv.Atoi(splitTrajanje[2])
-
-	trajanje := time.Duration(sati)*time.Hour + time.Duration(minuti)*time.Minute + time.Duration(sekunde)*time.Second
-	fmt.Println(trajanje)
-
-	// Parsiraj termin iz stringa u time.Time
-	terminStr, err := time.Parse("2006-01-02 15:04:05", termin)
-	fmt.Println(terminStr)
-	if err != nil {
-		return false, err
-	}
-
-	// Izračunaj vreme završetka rezervacije
-	vremeZavrsetka := terminStr.Add(trajanje)
-	fmt.Println(vremeZavrsetka)
-
-	query = `
-	SELECT COUNT(*)
-	FROM rezervacija
-	WHERE usluga_id = $1
-	AND vreme BETWEEN $2 AND $3
-    `
-	var brojPreklapanja int
-	err = db.QueryRow(query, uslugaID, terminStr, vremeZavrsetka).Scan(&brojPreklapanja)
-	if err != nil {
-		fmt.Println("greska prilikom izvršavanja upita:", err)
-		return false, err
-	}
-
-	fmt.Println(brojPreklapanja)
-	// Ako ima preklapanja, rezervacija se ne može napraviti
-	return brojPreklapanja == 0, nil
-}*/
 
 // ///brisanje rezervacije i njenih stavki ///////////////
 func DeleteReservation(w http.ResponseWriter, r *http.Request) {

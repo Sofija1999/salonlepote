@@ -1,0 +1,61 @@
+#footer{
+    background-color: rgb(37, 37, 37);
+    color: aliceblue;
+}
+
+.row{
+    padding: 30px 10%;
+    display: flex;
+    justify-content: space-between;
+}
+.cone{
+    flex: 1;
+}
+#img_logo{
+    display: flex;
+    align-items: center;
+}
+#quick_links{
+    text-align: left;
+    flex: 0.5;
+    align-items: center;
+    padding-top: 30px;
+}
+.kutija{
+    border: 1px solid white;
+    width: 30%;
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    grid-template-rows: 1fr 2fr;
+}
+#opis{
+    font-size: 11px;
+    padding: 20px 0;
+    padding-right: 100px;
+}
+#copy_right{
+    padding: 30px;
+}
+.material-icons, .fa-phone-alt{
+    grid-area: 1/1/3/2;
+    margin: auto;
+}
+.kutija p{
+    margin: auto 0px;
+}
+.mreze a i{
+    font-size: 30px;
+    padding: 0px 20px;
+    color: aliceblue;
+}
+#quick_links ul li a{
+    text-decoration: none;
+    color: aliceblue;
+}
+
+#quick_links ul li{
+    padding: 8px;
+}
+#contact{
+    cursor: pointer;
+}

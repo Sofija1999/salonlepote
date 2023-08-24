@@ -4,13 +4,27 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Izmena rezervacije</title>
-    <link rel="stylesheet" href="../css/stules_izmena.css">
+    <link rel="stylesheet" href="../css/home.css">
+    <link rel="stylesheet" href="../css/mediastyle.css">
+    <link rel="stylesheet" href="../css/animation.css">
+    <link rel="stylesheet" href="../css/s_izmena.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.15/dist/sweetalert2.min.css">
+
 </head>
 <body>
-    <header>
-        <h1>Izmena rezervacije</h1>
-        <a href="index.html">Povratak na početnu stranicu</a>
-    </header>
+    <section id="header" class="header">
+        <nav class="nav">
+            <a href="#header"><img src="../images/logo.png" alt=""></a>
+            <div id="nav-links">
+                <ul>
+                    <li><a href="../html/index.html">HOME</a></li>
+                    <li><a href="../html/rezervacija.html">REZERVACIJA</a></li>
+                    <li><a href="../html/otkaz.html">OTKAZIVANJE</a></li>
+                    <li><a href="../html/izmena.html">IZMENA REZERVACIJE</a></li>
+                </ul>
+            </div>
+        </nav>
+    </section>
     <form id="pretragaForma">        
         <h2>Izmeni rezervaciju</h2>
         <p>Ukoliko želite da izmenite rezervaciju, molimo vas unesite token rezervacije i vaš e-mail.</p>
@@ -28,6 +42,7 @@
 </html>
 
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.15/dist/sweetalert2.all.min.js"></script>
 
 <script>
 
@@ -96,7 +111,12 @@
 
             })
             .catch(error => {
-                console.error('Došlo je do greške pri pretrazi rezervacija:', error);
+                //console.error('Došlo je do greške pri pretrazi rezervacija:', error);
+                Swal.fire({
+                    title: "Neuspešno!",
+                    text: "Molim Vas unesite ispravne podatke o rezervaciji!", 
+                    icon: "error",
+                })
                 // Ovde možete prikazati neku poruku o grešci korisniku
             });
         }

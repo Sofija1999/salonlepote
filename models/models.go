@@ -36,8 +36,12 @@ type ReservationRequest struct {
 }
 
 type ReservationResponse struct {
-	ID      int64  `json:"id"`
-	Message string `json:"message"`
+	ID       int64  `json:"id"`
+	Message  string `json:"message"`
+	PromoKod string `json:"promo_kod"`
+	Token    string `json:"token"`
+	Error    string `json:"error"`
+	UkupnaCena int64 `json:"ukupna_cena"`
 }
 
 type DeleteReservationRequest struct {
@@ -75,7 +79,7 @@ type StavkaRezervacijeInsert struct {
 }
 
 type StavkaRezervacijeInsertResponse struct {
-	ID    int64     `json:"id"`
+	ID          int64     `json:"id"`
 	UslugaNaziv string    `json:"usluga_naziv"`
 	Cena        int64     `json:"cena"`
 	UkupnaCena  int64     `json:"ukupna_cena"`

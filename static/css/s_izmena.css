@@ -1,0 +1,119 @@
+/* Resetiranje defaultnih stilova */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  /* Osnovni stil stranice */
+  body {
+    font-family: Arial, sans-serif;
+    background-color: #f9f9f9;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.7),rgb(0, 0, 0, 0.7)), url(https://images.adsttc.com/media/images/610d/33ac/f91c/81e2/e400/017c/large_jpg/07-A_1V7A0735_BELLE_CL-01.jpg?1628255125);
+    background-size: cover;
+    margin: auto;
+    background-attachment: fixed;
+    color: white;
+  }
+  
+  header {
+    text-align: center;
+    background-color: #f2f2f2;
+    padding: 1rem;
+    animation: fadeInUp 1s ease-out;
+  }
+  
+  header h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  header a {
+    color: #333;
+    text-decoration: none;
+    transition: color 0.3s;
+    margin-top: 1rem;
+    display: block;
+  }
+  
+  header a:hover {
+    color: #f26725;
+  }
+  
+  form {
+    padding:150px 200px 70px 200px;
+    animation: fadeInUp 1s ease-out;
+
+  }
+  
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+  }
+  
+  p {
+    font-size: 20px;
+    margin-bottom: 1.5rem;
+  }
+  
+  label {
+    display: block;
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  input {
+    width: 100%;
+    padding: 0.5rem;
+    margin-bottom: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  
+  button {
+    background-color: #f26725;
+    color: #fff;
+    border: none;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  button:hover {
+    background-color: #d35400;
+  }
+  
+  #rezervacijeContainer {
+    margin-top: 2rem;
+  }
+  
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  #izbor-usluge {
+    width: 100%;
+    padding: 5px;
+}
+
+#btn-dodaj-uslugu {
+    padding: 5px 10px;
+    margin: 10px 0px;
+    background-color: #d35400;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
+/* Stil za prikazivanje cene usluge */
+.cena-span {
+    display: inline-block;
+    margin-left: 10px;
+}

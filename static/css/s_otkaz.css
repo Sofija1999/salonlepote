@@ -8,79 +8,94 @@
   /* Osnovni stil stranice */
   body {
     font-family: Arial, sans-serif;
+    line-height: 1.6;
     background-color: #f9f9f9;
+    background-image: linear-gradient(rgba(0, 0, 0, 0.7),rgb(0, 0, 0, 0.7)), url(https://images.adsttc.com/media/images/610d/33ac/f91c/81e2/e400/017c/large_jpg/07-A_1V7A0735_BELLE_CL-01.jpg?1628255125);
+    background-size: cover;
+    margin: auto;
+    background-attachment: fixed;
+    color: white;
   }
   
   header {
     text-align: center;
     background-color: #f2f2f2;
-    padding: 1rem;
-    animation: fadeInUp 1s ease-out;
-  }
-  
-  header h1 {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-  }
-  
-  header a {
-    color: #333;
-    text-decoration: none;
-    transition: color 0.3s;
-    margin-top: 1rem;
-    display: block;
-  }
-  
-  header a:hover {
-    color: #f26725;
-  }
-  
-  form {
     padding: 2rem;
     animation: fadeInUp 1s ease-out;
   }
   
-  h2 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
+  header h1 {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
   }
   
-  p {
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
+  nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    padding: 1rem 0;
+  }
+  
+  nav li {
+    margin: 0 1rem;
+  }
+  
+  nav a {
+    color: white;
+    text-decoration: none;
+    transition: color 0.3s;
+  }
+  
+  nav a:hover {
+    color: #f26725;
+  }
+  
+  form {
+    padding:150px 200px 70px 200px;
+    animation: fadeInUp 1s ease-out;
+  }
+  
+  h2 {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
   }
   
   label {
     display: block;
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.4rem;
+    margin-top: 1rem;
   }
   
   input {
     width: 100%;
     padding: 0.5rem;
-    margin-bottom: 1rem;
+    font-size: 1.4rem;
     border: 1px solid #ccc;
-    border-radius: 4px;
+    border-radius: 5px;
   }
   
   button {
     background-color: #f26725;
-    color: #fff;
-    border: none;
+    color: white;
+    margin: 20px 0;
     padding: 0.5rem 1rem;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.4rem;
     cursor: pointer;
     transition: background-color 0.3s;
   }
   
   button:hover {
-    background-color: #d35400;
+    background-color: #e0561b;
   }
   
-  #rezervacijeContainer {
-    margin-top: 2rem;
+  footer {
+    text-align: center;
+    padding: 2rem;
   }
   
+  /* Animacije */
   @keyframes fadeInUp {
     from {
       opacity: 0;
@@ -91,22 +106,3 @@
       transform: translateY(0);
     }
   }
-
-  #izbor-usluge {
-    width: 100%;
-    padding: 5px;
-}
-
-#btn-dodaj-uslugu {
-    padding: 5px 10px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    cursor: pointer;
-}
-
-/* Stil za prikazivanje cene usluge */
-.cena-span {
-    display: inline-block;
-    margin-left: 10px;
-}
