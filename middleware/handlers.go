@@ -25,11 +25,6 @@ func ServeFrontEnd(w http.ResponseWriter, r *http.Request) {
 	http.ServeFile(w, r, "static/html/index.html")
 }
 
-/*type response struct {
-	Id      int64  `json:"id, omitempty"`
-	Message string `json:"message,omitempty"`
-}*/
-
 func createConnection() *sql.DB {
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -403,9 +398,11 @@ func checkOverlapWithTotalDuration(db *sql.DB, stavkeRezervacije []models.Stavka
 	totalDuration, err := calculateTotalDurationFromStavke(db, stavkeRezervacije)
 	fmt.Println(totalDuration)
 
+	fmt.Println(termin)
 	// Parsiraj termin iz stringa u time.Time
 	terminStr, err := time.Parse("2006-01-02T15:04", termin)
 	if err != nil {
+		fmt.Println("ovde je greska!!")
 		return false, err
 	}
 
@@ -443,6 +440,7 @@ func checkOverlapWithTotalDuration(db *sql.DB, stavkeRezervacije []models.Stavka
 
 func calculateTotalDurationFromStavke(db *sql.DB, stavke []models.StavkaRezervacije) (time.Duration, error) {
 	totalDuration := time.Duration(0)
+	fmt.Println("usao u calculate total duration")
 
 	for _, stavka := range stavke {
 		// Dobiti trajanje usluge za datu stavku
@@ -700,16 +698,27 @@ func DeleteStavka(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Ažuriraj ukupnu cenu rezervacije
-	err = updateUkupnaCena(reservationID)
+	ukupnaCena, err := updateUkupnaCena(reservationID)
 	if err != nil {
 		fmt.Println("eror3")
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
+	response := models.StavkaRezervacijeDeleteResponse{
+		Message:    "Stavka je uspešno obrisana iz rezervacije.",
+		UkupnaCena: ukupnaCena,
+	}
+
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(`{"message": "Stavka je uspešno obrisana iz rezervacije."}`))
+	responseJSON, err := json.Marshal(response)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Write(responseJSON)
+
 }
 
 // Funkcija za brisanje stavke po uslugaID
@@ -759,7 +768,7 @@ func getReservationIDByUslugaID(uslugaID string) (int64, error) {
 }
 
 // Ažuriraj ukupnu cenu rezervacije
-func updateUkupnaCena(reservationID int64) error {
+func updateUkupnaCena(reservationID int64) (int64, error) {
 	db := createConnection()
 	defer db.Close()
 
@@ -775,7 +784,7 @@ func updateUkupnaCena(reservationID int64) error {
 	err := row.Scan(&novaUkupnaCena)
 	if err != nil {
 		fmt.Println("eror u ukupna cena")
-		return err
+		return 0, err
 	}
 
 	// Ažuriraj ukupnu cenu rezervacije u bazi
@@ -785,10 +794,10 @@ func updateUkupnaCena(reservationID int64) error {
 	_, err = db.Exec(updateStatement, novaUkupnaCena, reservationID)
 	if err != nil {
 		fmt.Println("eror ukupna cena 2")
-		return err
+		return 0, err
 	}
 
-	return nil
+	return novaUkupnaCena, nil
 }
 
 ////Create stavka rezervacije
@@ -825,8 +834,11 @@ func CreateStavka(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	termin, err := getTerminRezervacije(novaStavka.RezervacijaID)
+	listaStavki, err := getStavkeByReservationID(novaStavka.RezervacijaID)
+
 	// Upisivanje nove stavke rezervacije u bazu
-	id, err := insertStavkaRezervacije2(novaStavka, uslugaID)
+	id, err := insertStavkaRezervacije2(novaStavka, uslugaID, termin, listaStavki)
 	if err != nil {
 		fmt.Println("greska pri insertu stavke")
 		http.Error(w, "Greška pri upisivanju stavke rezervacije u bazu", http.StatusInternalServerError)
@@ -847,7 +859,7 @@ func CreateStavka(w http.ResponseWriter, r *http.Request) {
 	odgovor.ID = id
 	odgovor.UslugaNaziv = novaStavka.UslugaNaziv
 	odgovor.Cena = novaStavka.Cena
-	odgovor.Termin, err = getTerminRezervacije(novaStavka.RezervacijaID)
+	odgovor.Termin = termin
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
@@ -855,9 +867,25 @@ func CreateStavka(w http.ResponseWriter, r *http.Request) {
 
 }
 
-func insertStavkaRezervacije2(novaStavka models.StavkaRezervacijeInsert, uslugaID int64) (int64, error) {
+func insertStavkaRezervacije2(novaStavka models.StavkaRezervacijeInsert, uslugaID int64, termin time.Time, listaStavki []models.StavkaRezervacije) (int64, error) {
 	db := createConnection()
 	defer db.Close()
+	fmt.Println("usao u insert stavka 2")
+
+	// Definišite željeni format datuma i vremena
+	format := "2006-01-02 15:04:05"
+
+	// Koristite funkciju Format da pretvorite vreme u string
+	terminString := termin.Format(format)
+	fmt.Println(terminString)
+
+	isFree, err := checkOverlapWithTotalDuration2(db, listaStavki, terminString)
+	if err != nil {
+		return 0, fmt.Errorf("greška prilikom provere preklapanja rezervacija: %v", err)
+	}
+	if !isFree {
+		return 0, fmt.Errorf("rezervacija već postoji za ovaj termin")
+	}
 
 	// Priprema SQL upita za unos nove stavke rezervacije
 	sqlStatement := `
@@ -868,7 +896,7 @@ func insertStavkaRezervacije2(novaStavka models.StavkaRezervacijeInsert, uslugaI
 	var id int64 // Promenljiva za čuvanje rezultata
 
 	// Izvršavanje SQL upita i čuvanje rezultata
-	err := db.QueryRow(sqlStatement, novaStavka.RezervacijaID, uslugaID, novaStavka.UslugaNaziv, novaStavka.Cena).Scan(&id)
+	err = db.QueryRow(sqlStatement, novaStavka.RezervacijaID, uslugaID, novaStavka.UslugaNaziv, novaStavka.Cena).Scan(&id)
 	if err != nil {
 		return 0, err
 	}
@@ -945,4 +973,100 @@ func getTerminRezervacije(rezervacijaID int64) (time.Time, error) {
 	}
 
 	return vreme, nil
+}
+
+func getStavkeByReservationID(reservationID int64) ([]models.StavkaRezervacije, error) {
+	db := createConnection()
+	defer db.Close()
+
+	var stavke []models.StavkaRezervacije
+
+	query := "SELECT usluga_naziv, cena FROM stavka_rezervacije WHERE rezervacija_id = $1"
+	rows, err := db.Query(query, reservationID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var stavka models.StavkaRezervacije
+		err := rows.Scan(&stavka.UslugaNaziv, &stavka.Cena)
+		if err != nil {
+			return nil, err
+		}
+		stavke = append(stavke, stavka)
+	}
+
+	return stavke, nil
+}
+
+func checkOverlapWithTotalDuration2(db *sql.DB, stavkeRezervacije []models.StavkaRezervacije, termin string) (bool, error) {
+	// Izračunaj ukupno trajanje svih usluga u rezervaciji
+	totalDuration, err := calculateTotalDurationFromStavke2(db, stavkeRezervacije)
+	fmt.Println(totalDuration)
+
+	fmt.Println(termin)
+	// Parsiraj termin iz stringa u time.Time
+	terminStr, err := time.Parse("2006-01-02 15:04:05", termin)
+	if err != nil {
+		fmt.Println("ovde je greska!!")
+		return false, err
+	}
+
+	// Izračunaj vreme završetka nove rezervacije
+	vremeZavrsetka := terminStr.Add(totalDuration)
+	fmt.Println(vremeZavrsetka)
+
+	//provera radno vreme
+	workEnd, _ := time.Parse("15:04:05", "18:00:00")
+
+	if vremeZavrsetka.Hour() > workEnd.Hour() {
+		fmt.Println(vremeZavrsetka)
+		fmt.Println(workEnd)
+		return false, nil
+	}
+
+	query := `SELECT COUNT(*)
+			FROM rezervacija
+			WHERE vreme BETWEEN $1 AND $2`
+
+	var brojPreklapanja int
+	err = db.QueryRow(query, terminStr, vremeZavrsetka).Scan(&brojPreklapanja)
+	fmt.Println(brojPreklapanja)
+	if err != nil {
+		return false, err
+	}
+
+	if brojPreklapanja > 1 {
+		fmt.Println("broj preklapanja veci od jedan")
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func calculateTotalDurationFromStavke2(db *sql.DB, stavke []models.StavkaRezervacije) (time.Duration, error) {
+	totalDuration := time.Duration(0)
+	fmt.Println("usao u calculate total duration")
+
+	for _, stavka := range stavke {
+		// Dobiti trajanje usluge za datu stavku
+		var trajanjeStr string
+		query := "SELECT trajanje FROM usluga WHERE naziv = $1"
+		err := db.QueryRow(query, stavka.UslugaNaziv).Scan(&trajanjeStr)
+		if err != nil {
+			return 0, err
+		}
+
+		// Pretvoriti trajanje iz stringa u vreme
+		splitTrajanje := strings.Split(trajanjeStr, ":")
+		sati, _ := strconv.Atoi(splitTrajanje[0])
+		minuti, _ := strconv.Atoi(splitTrajanje[1])
+		sekunde, _ := strconv.Atoi(splitTrajanje[2])
+
+		trajanje := time.Duration(sati)*time.Hour + time.Duration(minuti)*time.Minute + time.Duration(sekunde)*time.Second
+		totalDuration += trajanje
+	}
+
+	return totalDuration, nil
 }

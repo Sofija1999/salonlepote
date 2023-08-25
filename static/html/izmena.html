@@ -46,6 +46,8 @@
 
 <script>
 
+    let brojStavki = 0; // Globalno deklarisana promenljiva
+
     function pretraziRezervacije() {
             const token = $('#pretragaToken').val();
             const email = $('#pretragaEmail').val();
@@ -57,17 +59,18 @@
                 let rezultatHtml = '';
 
                 // Prikazujemo broj rezervacije i ukupnu cenu
-                rezultatHtml += `<p>Broj rezervacije: ${data.id}</p>`;
-                rezultatHtml += `<p>Ukupna cena: ${data.ukupna_cena} dinara</p>`;
+                rezultatHtml += `<p><span id="brojRezervacije" style="display: none;"> ${data.id}</span></p>`;
+                rezultatHtml += `<p id="ukupna-cena">Ukupna cena: ${data.ukupna_cena} dinara</p>`;
 
                 // Kreiramo tabelu za prikaz usluga
                 rezultatHtml += '<table>';
-                rezultatHtml += '<tr><th>Usluga ID</th><th>Naziv usluge</th><th>Cena usluge</th></tr>';
+                rezultatHtml += '<tr><th></th><th>Naziv usluge</th><th><th>Cena usluge</th></tr>';
 
                 // Iteriramo kroz usluge rezervacije i dodajemo ih u tabelu
                 data.stavke_rezervacije.forEach((usluga) => {
+                    brojStavki++;
                     rezultatHtml += `<tr id="usluga-${usluga.id}">`;
-                    rezultatHtml += `<td>${usluga.id}</td>`;
+                    rezultatHtml += `<td><span id="skriveniId-${usluga.id}" style="display: none;">${usluga.id}</span></td>`;
                     rezultatHtml += `<td>${usluga.usluga_naziv}</td>`;
                     rezultatHtml += `<td>${usluga.cena} dinara</td>`;
                      // Dodajemo dugme za brisanje sa odgovarajućim atributima za identifikaciju usluge
@@ -133,6 +136,8 @@
         event.preventDefault(); // Sprečava podrazumevano ponašanje dugmeta
         const uslugaId = $(this).data('usluga-id');
 
+        if (brojStavki >1){
+
         $.ajax({
         type: "DELETE",
         url: `http://localhost:8080/api/deletestavka/${uslugaId}`,
@@ -141,12 +146,29 @@
         success: function(data, text) {
             console.log(data);
             obrisiRedUSluzi(uslugaId);
+            brojStavki--;
+            const ukupnaCena = data.ukupna_cena;
+            const ukupnaCenaElement = document.getElementById('ukupna-cena');
+            ukupnaCenaElement.textContent = `${ukupnaCena} dinara`;
+
+            Swal.fire({
+                    title: "Uspešno!",
+                    text: "Uspešno ste obrisali uslugu!", 
+                    icon: "success",
+                })
             // Osvježite prikaz ili pretragu rezervacija nakon brisanja stavke
         },
         error: function(request, status, error) {
             alert(request.responseText);
         }
-    });
+    }); 
+} else {
+    Swal.fire({
+                    title: "Neuspešno!",
+                    text: "Ne možete obrisati poslednju uslugu iz vaše rezervacije! Molim Vas onda otkažite rezervaciju na stranici za otkaz!", 
+                    icon: "error",
+                })
+}
 });
 
 function obrisiRedUSluzi(uslugaId) {
@@ -209,7 +231,7 @@ function dodajUslugu() {
     console.log(uslugeContainer)
     const novaUslugaRed = `
         <tr id="usluga-${data.id}">
-            <td>${data.id}</td>
+            <td><span class="usluga-id" style="display: none;">${data.id}</span></td>
             <td>${data.usluga_naziv}</td>
             <td>${data.cena} dinara</td>
             <td><button class="btn-delete-stavka" data-usluga-id="${data.id}">Obriši</button></td>
@@ -223,13 +245,21 @@ function dodajUslugu() {
         console.error("Element 'uslugeContainer' nije pronađen."); // Ispravljeno ime elementa
     }
 
+    const ukupnaCena = data.ukupna_cena;
+    const ukupnaCenaElement = document.getElementById('ukupna-cena');
+    ukupnaCenaElement.textContent = `${ukupnaCena} dinara`;
+
     // Resetujte formu za unos usluge
     select.value = '0';
     updateCena();
 
     // Prikažite poruku korisniku
-    const termin = data.termin; // Pretpostavka da imate funkciju za dohvat termina
-    alert(`Uspešno ste dodali uslugu '${data.usluga_naziv}' u rezervaciju sa terminom '${termin}'.`);
+    brojStavki++;
+    Swal.fire({
+                    title: "Uspešno!",
+                    text: "Uspešno ste uneli uslugu u vašu rezervaciju!", 
+                    icon: "success",
+                })
 },
     error: function(error) {
         console.error('Greška pri dodavanju usluge:', error);
