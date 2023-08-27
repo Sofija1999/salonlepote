@@ -74,9 +74,11 @@
     background-color: #f26725;
     color: #fff;
     border: none;
-    padding: 0.5rem 1rem;
+    padding: 1rem 2rem;
     cursor: pointer;
     transition: background-color 0.3s;
+    border-radius: 8px; /* Dodat zaobljeni izgled na uglovima */
+    font-size: 1.2rem; /* Povećana veličina fonta */
   }
   
   button:hover {
@@ -100,20 +102,29 @@
 
   #izbor-usluge {
     width: 100%;
-    padding: 5px;
+    padding: 10px;
+    border: 1px solid #ccc; /* Dodat okvir oko elementa */
+    border-radius: 8px; /* Dodat zaobljeni izgled na uglovima */
+    margin-bottom: 20px; /* Povećan razmak ispod elementa */
 }
 
 #btn-dodaj-uslugu {
-    padding: 5px 10px;
+    padding: 10px 20px;
     margin: 10px 0px;
     background-color: #d35400;
     color: white;
     border: none;
     cursor: pointer;
+    border-radius: 8px; /* Dodat zaobljeni izgled na uglovima */
+
 }
 
 /* Stil za prikazivanje cene usluge */
 .cena-span {
     display: inline-block;
     margin-left: 10px;
+}
+
+#btn-dodaj-uslugu:hover {
+  background-color: #e74c3c; /* Promenjena boja prilikom prelaska preko dugmeta */
 }

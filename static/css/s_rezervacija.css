@@ -18,7 +18,7 @@
   }
   
   h1, h2, h3 {
-    color: #333;
+    color: #ffffff;
   }
   #rez{
     padding-top: 100px;
@@ -26,6 +26,7 @@
     margin: 0px auto;
     text-align: center;
     font-size: 55px;
+    animation: fadeInUp 1s ease-out;
   }
   
   /* Forma za rezervaciju */
@@ -33,8 +34,8 @@
     max-width: 600px;
     margin: 0 auto;
     padding: 2rem;
-    background-color: #fff;
     box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.1);
+    animation: fadeInUp 1s ease-out;
   }
   
   /* Labela za input polja */
@@ -42,7 +43,7 @@
     display: block;
     margin-bottom: 0.5rem;
     font-weight: bold;
-    color: #555;
+    color: #fff5f5;
   }
   
   /* Input polja */
@@ -67,14 +68,14 @@
   /* Cena span */
   .cena-span {
     font-size: 1.2rem;
-    color: #666;
+    color: #ccc;
   }
   
   /* Dugme za dodavanje usluge */
   button {
-    background-color: #f26725;
-    color: #fff;
-    padding: 0.5rem 1rem;
+    background-color: #000000;
+    color: #ccc;
+    padding: 0.3rem 0.6rem;
     border: none;
     border-radius: 4px;
     cursor: pointer;
@@ -82,18 +83,21 @@
   
   /* Dugme za slanje forme */
   input[type="submit"] {
-    background-color: #3498db;
-    color: #fff;
+    background-color: #f26725;
+    color: white;
+    margin: 20px 0;
     padding: 0.5rem 1rem;
     border: none;
-    border-radius: 4px;
+    border-radius: 5px;
+    font-size: 1.4rem;
     cursor: pointer;
+    transition: background-color 0.3s;
+    text-align: right;
   }
   
   /* Stil za ukupnu cenu */
   #ukupnaCena {
     color: #f26725;
-    font-weight: bold;
   }
   
   /* Stil za usluge container */
@@ -116,20 +120,36 @@
   }
   
   .prikazanaCena-1 {
-    color: #f26725;
+    color: #ffffff;
     font-weight: bold;
   }
   
   /* Dodatni stil za dugme za dodavanje usluge */
   button[type="button"] {
-    background-color: #3498db;
-    color: #fff;
-    padding: 0.3rem 0.6rem;
+    background-color: #f26725;
+    color: white;
+    margin: 20px 0;
+    padding: 0.5rem 1rem;
     border: none;
-    border-radius: 4px;
+    border-radius: 5px;
+    font-size: 1.4rem;
     cursor: pointer;
+    transition: background-color 0.3s;
   }
   
   button[type="button"]:hover {
-    background-color: #2980b9;
+    background-color: #e77000;
   }
+
+    /* Animacije */
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+ 

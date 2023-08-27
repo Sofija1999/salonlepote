@@ -9,24 +9,17 @@ import (
 )
 
 func main() {
-	/// Kreirajte instancu routera
+	//instanca routera
 	r := routers.Router()
 
-	/*c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:8080"},
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE"},
-		AllowedHeaders:   []string{"Authorization", "Content-Type"},
-		AllowCredentials: true,
-	})*/
-
-	// Definišite putanju do vašeg statičkog sadržaja (front-end resursi)
+	//definisana putanja do statičkog sadržaja (front-end resursi)
 	staticDir := http.Dir("./static/")
 	staticFileHandler := http.FileServer(staticDir)
 
-	// Definišite putanju na kojoj će biti serviran statički sadržaj (npr. /static/)
+	//definisana putanja na kojoj će biti serviran statički sadržaj (npr. /static/)
 	http.Handle("/static/", http.StripPrefix("/static/", staticFileHandler))
 
-	// Postavite rutere koji će obrađivati back-end zahteve
+	//postavljanje rutera koji će obrađivati back-end zahteve
 	http.Handle("/api/", r)
 
 	fmt.Println("Starting server on the port 8080..")

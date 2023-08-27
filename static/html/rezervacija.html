@@ -4,11 +4,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rezervacija termina - Salon TRAC</title>
-    <link rel="stylesheet" href="../css/s_rezervacija.css">
     <link rel="stylesheet" href="../css/home.css">
     <link rel="stylesheet" href="../css/mediastyle.css">
     <link rel="stylesheet" href="../css/animation.css">
+    <link rel="stylesheet" href="../css/s_rezervacija.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.15/dist/sweetalert2.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
 
 </head>
 <body>
@@ -26,7 +28,9 @@
         </nav>
     </section>
     <h1 id="rez">Rezervacija termina</h1>
+
     <form id="reservation_form">
+
         <h2>Podaci o kupcu</h2>
 
         <label for="ime">Ime:</label>
@@ -91,44 +95,13 @@
 
     </form>
 
-
-    
-    <form id="otkazForma">
-        <section id="otkaziRezervaciju">
-            <h2>Otkazivanje rezervacije</h2>
-            <p>Ukoliko želite da otkazete rezervaciju, molimo vas unesite token rezervacije i vaš e-mail.</p>
-            
-                <label for="token">Token rezervacije:</label>
-                <input type="text" id="token" name="token" required>
-
-                <label for="emailOtkaz">Vaš e-mail:</label>
-                <input type="email" id="emailOtkaz" name="email" required>
-
-                <button type="submit">Otkaži rezervaciju</button>
-
-            <div id="rezultatPoruka"></div>
-        </section>
-    </form>
-
-<form id="pretragaForma">        
-    <h2>Izmeni rezervaciju</h2>
-    <p>Ukoliko želite da izmenite rezervaciju, molimo vas unesite token rezervacije i vaš e-mail.</p>
-
-    <label for="pretragaToken">Unesite token rezervacije:</label>
-    <input type="text" id="pretragaToken" name="token" required>
-
-    <label for="pretragaEmail">Unesite email:</label>
-    <input type="email" id="pretragaEmail" name="email" required>
-
-    <button type="button" onclick="pretraziRezervacije()">Pretraga</button>
-    <div id="rezervacijeContainer">
-
-</form>
 </div>
 
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.15/dist/sweetalert2.all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+ 
 
     <script>
 
@@ -141,34 +114,6 @@
             }
         });
 
-
-            $('#otkazForma').submit(function (e) {
-                e.preventDefault();
-                let formData = $(this).serializeArray();
-                console.log(formData)
-                 let jsonData = {};
-                 console.log(jsonData)
-
-            $.each(formData, function(i, v) {
-                jsonData[v.name] = v.value;
-            });
-            console.log(jsonData)
-    
-                $.ajax({
-                    type: "DELETE",
-                    url: "http://localhost:8080/api/deletereservation",
-                    data: JSON.stringify(jsonData), 
-                    dataType: "json",
-                    contentType: "application/json",
-                    success: function (data, text) {
-                        console.log(data)
-                    },
-                    error: function (request, status, error) {
-                        console.log(request.responseText);
-                    }
-                });
-            });
-
             // selectId is id of select tag
             function updateCena(selectId) {
                 let brUsluge = selectId.split('-')[2];
@@ -179,7 +124,7 @@
 
                 $(`.prikazanaCena-${brUsluge}`).html(selectedCena);
 
-                // Nakon dodavanja, ažurirajte ukupnu cenu
+                //nakon dodavanja, ažurira se ukupna cena
                 azurirajUkupnuCenu();
             }
 
@@ -210,72 +155,6 @@
             }
 
 
-        function pretraziRezervacije() {
-            const token = $('#pretragaToken').val();
-            const email = $('#pretragaEmail').val();
-
-            fetch(`http://localhost:8080/api/reservation?token=${token}&email=${email}`)
-            .then(response => response.json())
-            .then(data => {
-                const rezervacijeContainer = document.getElementById('rezervacijeContainer');
-                let rezultatHtml = '';
-
-                // Prikazujemo broj rezervacije i ukupnu cenu
-                rezultatHtml += `<p>Broj rezervacije: ${data.id}</p>`;
-                rezultatHtml += `<p>Ukupna cena: ${data.ukupna_cena} dinara</p>`;
-
-                // Kreiramo tabelu za prikaz usluga
-                rezultatHtml += '<table>';
-                rezultatHtml += '<tr><th>Usluga ID</th><th>Naziv usluge</th><th>Cena usluge</th></tr>';
-
-                // Iteriramo kroz usluge rezervacije i dodajemo ih u tabelu
-                data.stavke_rezervacije.forEach((usluga) => {
-                    rezultatHtml += `<tr>`;
-                    rezultatHtml += `<td>${usluga.id}</td>`;
-                    rezultatHtml += `<td>${usluga.usluga_naziv}</td>`;
-                    rezultatHtml += `<td>${usluga.cena} dinara</td>`;
-                     // Dodajemo dugme za brisanje sa odgovarajućim atributima za identifikaciju usluge
-                     rezultatHtml += `<td><button class="btn-delete-stavka" data-usluga-id="${usluga.id}">Obriši</button></td>`;
-                    rezultatHtml += `</tr>`;
-                });
-
-                rezultatHtml += '</table>';
-
-                // Postavljamo generisani HTML u container
-                rezervacijeContainer.innerHTML = rezultatHtml;
-            })
-            .catch(error => {
-                console.error('Došlo je do greške pri pretrazi rezervacija:', error);
-                // Ovde možete prikazati neku poruku o grešci korisniku
-            });
-        }
-
-        // Dodajte event listener na body (ili na odgovarajući roditeljski element)
-        document.body.addEventListener('click', function (event) {
-        if (event.target.classList.contains('obrisi-uslugu')) {
-        const uslugaId = event.target.dataset.uslugaId;
-        obrisiUslugu(uslugaId); // Poziv funkcije za brisanje usluge
-        }
-        });
-
-        $(document).on('click', '.btn-delete-stavka', function(event) {
-        event.preventDefault(); // Sprečava podrazumevano ponašanje dugmeta
-        const uslugaId = $(this).data('usluga-id');
-
-        $.ajax({
-        type: "DELETE",
-        url: `http://localhost:8080/api/deletestavka/${uslugaId}`,
-        dataType: "json",
-        contentType: "application/json",
-        success: function(data, text) {
-            console.log(data);
-            // Osvježite prikaz ili pretragu rezervacija nakon brisanja stavke
-        },
-        error: function(request, status, error) {
-            alert(request.responseText);
-        }
-    });
-});
 
         // Funkcija za ažuriranje ukupne cene
         function azurirajUkupnuCenu() {
@@ -325,6 +204,27 @@
         });
         return
     }
+
+    //provera da li je termin u buducnosti
+    // Dobijanje trenutnog vremena
+    var trenutnoVreme = new Date();
+    console.log(trenutnoVreme)
+
+    // Konverzija stringa vremena u Date objekat
+    var unesenoVremeStr = termin;
+    var unesenoVreme = moment(unesenoVremeStr);
+    console.log(unesenoVreme)
+
+    //poredjenje vremena sa trenutnim trenutkom
+    if (unesenoVreme.isBefore(moment())) {
+        Swal.fire({
+            title: "Greška!",
+            text: "Uneti termin je u prošlosti, molim Vas unesite ispravno vreme termina!",
+            icon: "error",
+        });
+    return
+    } 
+
     //provera za vreme, da li je termin u radnom vremenu od 9-18
     var terminDate = new Date(termin);
     //postavljanje vremena za početak i kraj radnog vremena (9 ujutru i 6 uveče)

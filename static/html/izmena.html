@@ -28,6 +28,8 @@
     <form id="pretragaForma">        
         <h2>Izmeni rezervaciju</h2>
         <p>Ukoliko želite da izmenite rezervaciju, molimo vas unesite token rezervacije i vaš e-mail.</p>
+        <p>Ukoliko izmenite vašu rezervaciju, nemate prava na popuste.</p>
+
 
         <label for="pretragaToken">Unesite token rezervacije:</label>
         <input type="text" id="pretragaToken" name="token" required>
@@ -60,11 +62,11 @@
 
                 // Prikazujemo broj rezervacije i ukupnu cenu
                 rezultatHtml += `<p><span id="brojRezervacije" style="display: none;"> ${data.id}</span></p>`;
-                rezultatHtml += `<p id="ukupna-cena">Ukupna cena: ${data.ukupna_cena} dinara</p>`;
+                rezultatHtml += `<p id="ukupna-cena">Ukupna cena sa popustima: ${data.ukupna_cena} dinara</p>`;
 
                 // Kreiramo tabelu za prikaz usluga
                 rezultatHtml += '<table>';
-                rezultatHtml += '<tr><th></th><th>Naziv usluge</th><th><th>Cena usluge</th></tr>';
+                rezultatHtml += '<tr><th>Naziv usluge</th><td></td><th>Cena usluge</th></tr>';
 
                 // Iteriramo kroz usluge rezervacije i dodajemo ih u tabelu
                 data.stavke_rezervacije.forEach((usluga) => {
@@ -263,6 +265,11 @@ function dodajUslugu() {
 },
     error: function(error) {
         console.error('Greška pri dodavanju usluge:', error);
+        Swal.fire({
+                    title: "Neuspešno!",
+                    text: "Ne možete dodati uslugu jer se preklapa sa drugim terminom! Molim Vas napravite novu rezervaciju u drugom slobodnom terminu!", 
+                    icon: "error",
+                })
         // Ovde možete prikazati poruku korisniku o grešci
     }
 
