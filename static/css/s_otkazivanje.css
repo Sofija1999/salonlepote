@@ -3,11 +3,11 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
   }
   
   /* Osnovni stil stranice */
   body {
-    font-family: Arial, sans-serif;
     line-height: 1.6;
     background-color: #f9f9f9;
     background-image: linear-gradient(rgba(0, 0, 0, 0.7),rgb(0, 0, 0, 0.7)), url(https://images.adsttc.com/media/images/610d/33ac/f91c/81e2/e400/017c/large_jpg/07-A_1V7A0735_BELLE_CL-01.jpg?1628255125);
@@ -61,7 +61,7 @@
   }
   
   h2 {
-    font-size: 15px;
+    font-size: 30px;
     margin-bottom: 1rem;
   }
   

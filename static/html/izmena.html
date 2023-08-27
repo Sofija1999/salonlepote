@@ -4,10 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Izmena rezervacije</title>
-    <link rel="stylesheet" href="../css/home.css">
-    <link rel="stylesheet" href="../css/mediastyle.css">
-    <link rel="stylesheet" href="../css/animation.css">
-    <link rel="stylesheet" href="../css/s_izmena.css">
+    <link rel="stylesheet" href="../css/homee.css">
+    <link rel="stylesheet" href="../css/s_izmenaa.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.15/dist/sweetalert2.min.css">
 
 </head>
@@ -28,7 +27,7 @@
     <form id="pretragaForma">        
         <h2>Izmeni rezervaciju</h2>
         <p>Ukoliko želite da izmenite rezervaciju, molimo vas unesite token rezervacije i vaš e-mail.</p>
-        <p>Ukoliko izmenite vašu rezervaciju, nemate prava na popuste.</p>
+        <p>Ukoliko obrišete vašu uslugu, nemate prava na popuste.</p>
 
 
         <label for="pretragaToken">Unesite token rezervacije:</label>
@@ -66,7 +65,7 @@
 
                 // Kreiramo tabelu za prikaz usluga
                 rezultatHtml += '<table>';
-                rezultatHtml += '<tr><th>Naziv usluge</th><td></td><th>Cena usluge</th></tr>';
+                rezultatHtml += '<tr><td></td><th>Naziv usluge</th><th>Cena usluge</th></tr>';
 
                 // Iteriramo kroz usluge rezervacije i dodajemo ih u tabelu
                 data.stavke_rezervacije.forEach((usluga) => {

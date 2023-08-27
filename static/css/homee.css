@@ -22,11 +22,13 @@ h1{
 nav{
     display: flex;
     align-items: center;
-    justify-content: center;
+    justify-content: space-between;
     position: fixed;
     transition: 1s;
     width: 100%;
+    
 }
+
 
 nav.scrolled{
     background-color: rgba(0, 0, 0, 0.75);
@@ -45,16 +47,8 @@ nav.scrolled a img{
 }
 
 #nav-links{
-    padding-left: 900px;
+    padding-left: 0;
     padding-right: 50px;
-}
-
-nav .fas{
-    display: none;
-}
-
-nav .fa{
-    display: none;
 }
 
 #nav-links ul li{
@@ -84,21 +78,6 @@ nav .fa{
 
 #nav-links ul li a:hover::after{
     width: 100%;
-}
-
-.sastojci{
-    display: flex;
-}
-#cart_qu{
-    position: absolute;
-    top: 15%;
-    right: 10%;
-    background-color: brown;
-    border-radius: 50%;
-    height: 20px;
-    width: 20px;
-    text-align: center;
-    display: none;
 }
 
 #pocetna{
@@ -131,32 +110,12 @@ nav .fa{
     background-color: rgba(0, 0, 0, 0.4);
 }
 
-.padajuci ul{
-    position: absolute;
-    left: 0;
-    display: flex;
-    flex-direction: column;
-    display: none;
-    cursor: pointer;
-    padding-top: 23px;
-}
-.padajuci ul li{
-    padding-top: 10px;
-}
-
-.padajuci:hover ul{
-    display: flex;
-}
-
-nav.scrolled .padajuci:hover ul li{
-    background-color: rgba(0, 0, 0, 0.75);
-}
-
 body
 {
   background-color:#f2f2f2;
-  font-family: 'RobotoDraft', 'Roboto', sans-serif;
   -webkit-font-smoothing: antialiased;
+  line-height: 1.6;
+
 }
 
 *

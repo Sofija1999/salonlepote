@@ -3,11 +3,12 @@
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+
   }
   
   /* Osnovni stil stranice */
   body {
-    font-family: Arial, sans-serif;
     line-height: 1.6;
     background-color: #f9f9f9;
     background-image: linear-gradient(rgba(0, 0, 0, 0.7),rgb(0, 0, 0, 0.7)), url(https://images.adsttc.com/media/images/610d/33ac/f91c/81e2/e400/017c/large_jpg/07-A_1V7A0735_BELLE_CL-01.jpg?1628255125);
@@ -67,8 +68,9 @@
   
   /* Cena span */
   .cena-span {
-    font-size: 1.2rem;
+    font-size: 1rem;
     color: #ccc;
+    flex: 2;
   }
   
   /* Dugme za dodavanje usluge */
@@ -85,7 +87,7 @@
   input[type="submit"] {
     background-color: #f26725;
     color: white;
-    margin: 20px 0;
+    margin: 20px 0px 20px 220px;
     padding: 0.5rem 1rem;
     border: none;
     border-radius: 5px;
@@ -103,6 +105,7 @@
   /* Stil za usluge container */
   #usluge-container {
     margin-bottom: 1rem;
+
   }
   
   .usluga-row {
@@ -113,15 +116,18 @@
   
   /* Stil za selekt polje i prikazane cene */
   .usluga-select {
-    flex: 1;
+    flex: 3;
     padding: 0.5rem;
+    margin: 0px 20px;
     border: 1px solid #ccc;
     border-radius: 4px;
   }
+  #brUsluge{
+    flex: 2;
+  }
   
   .prikazanaCena-1 {
-    color: #ffffff;
-    font-weight: bold;
+    color: #ccc;
   }
   
   /* Dodatni stil za dugme za dodavanje usluge */
